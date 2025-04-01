@@ -35,5 +35,7 @@ public class ReserveEntity {
     @ManyToMany
     @Column(nullable = false, name = "members")
     private Set<UserEntity> group;
+
+
 }
 

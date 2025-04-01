@@ -55,6 +55,13 @@ public class ReserveService {
                 .collect(Collectors.toList());
     }
 
+    public List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month) {
+        List<ReserveEntity> reserves = reserveRepository.getReserveByDate_Month(month);
+        return reserves.stream()
+                .filter(reserve -> reserve.getGroup().stream().anyMatch(user -> user.getRut().equals(rut)))
+                .collect(Collectors.toList());
+    }
+
     /*
     public List<List<ReserveEntity>> getReserveByWeek(int year, int month, int day) {
         Calendar cal = Calendar.getInstance();

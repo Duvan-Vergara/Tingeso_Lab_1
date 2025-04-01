@@ -34,10 +34,10 @@ public class ReserveController {
         return ResponseEntity.ok(newReserve);
     }
 
-    @GetMapping("/{year}/{month}")
-    public ResponseEntity<List<ReserveEntity>> listReservesBy(@PathVariable("rut") String rut, @PathVariable("year") int year, @PathVariable("month") int month) {
-        List<ReserveEntity> extraHours = reserveService.getExtraHoursByRutYearMonth(rut,year,month);
-        return ResponseEntity.ok(extraHours);
+    @GetMapping("/{rut}/{month}")
+    public ResponseEntity<List<ReserveEntity>> listReservesBy(@PathVariable("rut") String rut, @PathVariable("month") int month) {
+        List<ReserveEntity> reserves = reserveService.getReservesByDate_MonthANDRut(rut,month);
+        return ResponseEntity.ok(reserves);
     }
 
     @PutMapping("/")
@@ -48,7 +48,7 @@ public class ReserveController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Boolean> deleteExtraHoursById(@PathVariable Long id) throws Exception {
-        var isDeleted = reserveService.deleteExtraHour(id);
+        var isDeleted = reserveService.deleteReserveById(id);
         return ResponseEntity.noContent().build();
     }
 }
