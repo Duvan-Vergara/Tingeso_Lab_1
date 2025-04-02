@@ -19,7 +19,6 @@ public class ReserveController {
     public ResponseEntity<List<ReserveEntity>> listReservers() {
         List<ReserveEntity> reserves = reserveService.getReserves();
         return ResponseEntity.ok(reserves);
-
     }
 
     @GetMapping("/{id}")

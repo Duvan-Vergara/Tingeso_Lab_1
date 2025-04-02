@@ -36,6 +36,11 @@ public class ReserveEntity {
     @Column(nullable = false, name = "members")
     private Set<UserEntity> group;
 
+    @ManyToOne
+    @JoinColumn(name = "tariff_id", nullable = false)
+    private TariffEntity tariff;
 
+    @Column(nullable = false, name = "final_price")
+    private double finalPrice;
 }
 

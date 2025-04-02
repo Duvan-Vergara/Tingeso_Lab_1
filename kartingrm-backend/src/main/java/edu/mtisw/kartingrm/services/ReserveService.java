@@ -1,7 +1,10 @@
 package edu.mtisw.kartingrm.services;
 
 import edu.mtisw.kartingrm.entities.ReserveEntity;
+import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.ReserveRepository;
+import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
+import edu.mtisw.kartingrm.repositories.TariffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,7 +12,6 @@ import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,12 @@ public class ReserveService {
 
     @Autowired
     ReserveRepository reserveRepository;
+
+    @Autowired
+    TariffRepository tariffRepository;
+
+    @Autowired
+    SpecialDayRepository specialDayRepository;
 
     public ArrayList<ReserveEntity> getReserves(){
         return (ArrayList<ReserveEntity>) reserveRepository.findAll();
@@ -40,7 +48,6 @@ public class ReserveService {
     public List<ReserveEntity> getReserveByDay(int day){ return reserveRepository.getReserveByDate_Day(day); }
 
     public List<ReserveEntity> getReserveByMonth(int month){ return reserveRepository.getReserveByDate_Month(month); }
-
 
     public List<List<ReserveEntity>> getReserveByWeek(int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
@@ -106,4 +113,71 @@ public class ReserveService {
         }
     }
 
+    private double calculateFinalPrice(ReserveEntity reserve, int month) {
+        double totalPrice = 0;
+        int birthdaylimit = 0;
+        int numberOfPeople = reserve.getGroup().size();
+
+        if (numberOfPeople >= 3 && numberOfPeople <= 5) {
+            birthdaylimit = 1;
+        } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
+            birthdaylimit = 2;
+        }
+        double regularPrice = reserve.getTariff().getRegularPrice();
+        LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+
+        for (UserEntity user : reserve.getGroup()) {
+            double bestDiscount = 0;
+
+            // Descuento por número de personas
+            if (numberOfPeople >= 3 && numberOfPeople <= 5) {
+                bestDiscount = Math.max(bestDiscount, 0.10);
+            } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
+                bestDiscount = Math.max(bestDiscount, 0.20);
+            } else if (numberOfPeople >= 11 && numberOfPeople <= 15) {
+                bestDiscount = Math.max(bestDiscount, 0.30);
+            }
+
+            // Descuento para clientes frecuentes
+            List<ReserveEntity> visits = getReservesByDate_MonthANDRut(user.getRut(), month);
+            int visitsCount = visits.size();
+            if (visitsCount >= 7) {
+                bestDiscount = Math.max(bestDiscount, 0.30);
+            } else if (visitsCount >= 5) {
+                bestDiscount = Math.max(bestDiscount, 0.20);
+            } else if (visitsCount >= 2) {
+                bestDiscount = Math.max(bestDiscount, 0.10);
+            }
+
+            // Descuento por cumpleaños
+            if (isBirthday(user, reserve.getDate()) && birthdaylimit > 0) {
+                bestDiscount = Math.max(bestDiscount, 0.50);
+                birthdaylimit--;
+            }
+
+            // Tarifa especial para fines de semana y feriados
+            if (isWeekend(reserveDate) || isSpecialDay(reserveDate)) {
+                regularPrice = reserve.getTariff().getHolidayPrice();
+            }
+            totalPrice += regularPrice * (1 - bestDiscount);
+        }
+
+        return totalPrice;
+    }
+
+    private boolean isSpecialDay(LocalDate date) {
+        return specialDayRepository.findAll().stream()
+                .anyMatch(specialDay -> specialDay.getDate().equals(date));
+    }
+
+    private boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek().getValue() == 6 || date.getDayOfWeek().getValue() == 7;
+    }
+
+    private boolean isBirthday(UserEntity user, Date date) {
+        if(user.getBirthDate() == null || user.getBirthDate().getMonth() != date.getMonth()) {
+            return false;
+        }
+        return date.getDay() == user.getBirthDate().getDay();
+    }
 }

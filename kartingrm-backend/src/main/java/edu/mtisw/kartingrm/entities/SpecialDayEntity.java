@@ -1,30 +1,28 @@
 package edu.mtisw.kartingrm.entities;
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import jakarta.persistence.*;
+import java.time.LocalDate;
 
 @Entity
-@Table(name = "paychecks")
+@Table(name = "special_days")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaycheckEntity {
+public class SpecialDayEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)
     private Long id;
 
-    private String rut;
-    private int year;
-    private int month;
-    private int monthlySalary;
-    private int salaryBonus;
-    private int childrenBonus;
-    private int extraHoursBonus;
-    private int totalSalary;
-}
+    @Column(nullable = false, name = "date")
+    private LocalDate date;
 
+    @Column(nullable = false, name = "description")
+    private String description;
+
+}
