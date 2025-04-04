@@ -9,7 +9,4 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
     public UserEntity findByRut(String rut);
-
-    @Query(value = "SELECT * FROM users WHERE users.rut = :rut", nativeQuery = true)
-    UserEntity findByRutNativeQuery(@Param("rut") String rut);
 }

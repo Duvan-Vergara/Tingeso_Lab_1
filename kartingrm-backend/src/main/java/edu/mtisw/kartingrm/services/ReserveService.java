@@ -1,13 +1,22 @@
 package edu.mtisw.kartingrm.services;
 
+import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 import edu.mtisw.kartingrm.entities.ReserveEntity;
 import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.ReserveRepository;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
@@ -16,6 +25,14 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
+import com.itextpdf.text.Document;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.util.ByteArrayDataSource;
+import java.util.Properties;
 
 @Service
 public class ReserveService {
@@ -69,41 +86,6 @@ public class ReserveService {
                 .collect(Collectors.toList());
     }
 
-    /*
-    public List<List<ReserveEntity>> getReserveByWeek(int year, int month, int day) {
-        Calendar cal = Calendar.getInstance();
-        cal.set(Calendar.YEAR, year);
-        cal.set(Calendar.MONTH, month - 1); // Los meses en Calendar son 0-based
-        cal.set(Calendar.DAY_OF_MONTH, day);
-
-        // Ajustar al primer día de la semana
-        cal.set(Calendar.DAY_OF_WEEK, cal.getFirstDayOfWeek());
-        int startDate = cal.get(Calendar.DAY_OF_MONTH);
-
-        // Obtener el último día de la semana
-        cal.add(Calendar.DAY_OF_WEEK, 6);
-        int endDate = cal.get(Calendar.DAY_OF_MONTH);
-
-        List<ReserveEntity> reserves = reserveRepository.getReserveByDate_DateBetween(startDate, endDate);
-        List<List<ReserveEntity>> weeklyReserves = new ArrayList<>(7);
-
-        for (int i = 0; i < 7; i++) {
-            weeklyReserves.add(new ArrayList<>());
-        }
-
-        for (ReserveEntity reserve : reserves) {
-            cal.setTime(reserve.getDate());
-            int dayOfWeek = cal.get(Calendar.DAY_OF_WEEK) - cal.getFirstDayOfWeek();
-            if (dayOfWeek < 0) {
-                dayOfWeek += 7;
-            }
-            weeklyReserves.get(dayOfWeek).add(reserve);
-        }
-
-        return weeklyReserves;
-    }
-    */
-
     public boolean deleteReserveById(Long id) throws Exception {
         try {
             reserveRepository.deleteById(id);
@@ -113,68 +95,230 @@ public class ReserveService {
         }
     }
 
-    private double calculateFinalPrice(ReserveEntity reserve, int month) {
-        double totalPrice = 0;
-        int birthdaylimit = 0;
-        int numberOfPeople = reserve.getGroup().size();
-
+    public int calculateBirthdayLimit(int numberOfPeople) {
         if (numberOfPeople >= 3 && numberOfPeople <= 5) {
-            birthdaylimit = 1;
+            return 1;
         } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
-            birthdaylimit = 2;
+            return 2;
         }
-        double regularPrice = reserve.getTariff().getRegularPrice();
+        return 0;
+    }
+
+    public double calculateGroupSizeDiscount(int numberOfPeople) {
+        if (numberOfPeople >= 3 && numberOfPeople <= 5) {
+            return 0.10;
+        } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
+            return 0.20;
+        } else if (numberOfPeople >= 11 && numberOfPeople <= 15) {
+            return 0.30;
+        }
+        return 0;
+    }
+
+    public double calculateFrequentCustomerDiscount(UserEntity user, int month) {
+        List<ReserveEntity> visits = getReservesByDate_MonthANDRut(user.getRut(), month);
+        int visitsCount = visits.size();
+        if (visitsCount >= 7) {
+            return 0.30;
+        } else if (visitsCount >= 5) {
+            return 0.20;
+        } else if (visitsCount >= 2) {
+            return 0.10;
+        }
+        return 0;
+    }
+
+    public double calculateBestDiscount(UserEntity user, ReserveEntity reserve, int month) {
+        double bestDiscount = 0;
+        int numberOfPeople = reserve.getGroup().size();
+        // Descuento por número de personas
+        bestDiscount = Math.max(bestDiscount, calculateGroupSizeDiscount(numberOfPeople));
+        // Descuento para clientes frecuentes
+        bestDiscount = Math.max(bestDiscount, calculateFrequentCustomerDiscount(user, month));
+        return bestDiscount;
+    }
+
+    public double getTariffForDate(ReserveEntity reserve) {
+        LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        if (isSpecialDay(reserveDate)) {
+            return reserve.getTariff().getHolidayPrice();
+        } else if (isWeekend(reserveDate)) {
+            return reserve.getTariff().getWeekendPrice();
+        } else {
+            return reserve.getTariff().getRegularPrice();
+        }
+    }
+
+    public double calculateFinalPrice(ReserveEntity reserve, int month) {
+        double totalPrice = 0;
+        int birthdayLimit = calculateBirthdayLimit(reserve.getGroup().size());
+        double basePrice = getTariffForDate(reserve);
         LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         for (UserEntity user : reserve.getGroup()) {
-            double bestDiscount = 0;
-
-            // Descuento por número de personas
-            if (numberOfPeople >= 3 && numberOfPeople <= 5) {
-                bestDiscount = Math.max(bestDiscount, 0.10);
-            } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
-                bestDiscount = Math.max(bestDiscount, 0.20);
-            } else if (numberOfPeople >= 11 && numberOfPeople <= 15) {
-                bestDiscount = Math.max(bestDiscount, 0.30);
-            }
-
-            // Descuento para clientes frecuentes
-            List<ReserveEntity> visits = getReservesByDate_MonthANDRut(user.getRut(), month);
-            int visitsCount = visits.size();
-            if (visitsCount >= 7) {
-                bestDiscount = Math.max(bestDiscount, 0.30);
-            } else if (visitsCount >= 5) {
-                bestDiscount = Math.max(bestDiscount, 0.20);
-            } else if (visitsCount >= 2) {
-                bestDiscount = Math.max(bestDiscount, 0.10);
-            }
-
+            double bestDiscount = calculateBestDiscount(user, reserve, month);
             // Descuento por cumpleaños
-            if (isBirthday(user, reserve.getDate()) && birthdaylimit > 0) {
+            if (isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
                 bestDiscount = Math.max(bestDiscount, 0.50);
-                birthdaylimit--;
+                birthdayLimit--;
             }
-
-            // Tarifa especial para fines de semana y feriados
-            if (isWeekend(reserveDate) || isSpecialDay(reserveDate)) {
-                regularPrice = reserve.getTariff().getHolidayPrice();
-            }
-            totalPrice += regularPrice * (1 - bestDiscount);
+            // Aplicar el descuento al precio base por usuario
+            totalPrice += basePrice * (1 - bestDiscount);
         }
-
         return totalPrice;
     }
 
-    private boolean isSpecialDay(LocalDate date) {
+    public byte[] generatePaymentReceipt(ReserveEntity reserve) throws IOException {
+        Workbook workbook = new XSSFWorkbook();
+        Sheet sheet = workbook.createSheet("Comprobante de Pago");
+
+        // Crear encabezados
+        Row headerRow = sheet.createRow(0);
+        headerRow.createCell(0).setCellValue("Código de Reserva");
+        headerRow.createCell(1).setCellValue("Fecha y Hora de Reserva");
+        headerRow.createCell(2).setCellValue("Número de Vueltas/Max Tiempo");
+        headerRow.createCell(3).setCellValue("Cantidad de Personas");
+        headerRow.createCell(4).setCellValue("Nombre de la Persona que Reservó");
+
+        // Llenar información de la reserva
+        Row infoRow = sheet.createRow(1);
+        infoRow.createCell(0).setCellValue(reserve.getId());
+        infoRow.createCell(1).setCellValue(reserve.getDate().toString() + " " + reserve.getBegin().toString());
+        infoRow.createCell(2).setCellValue(reserve.getTariff().getLaps() + " vueltas / " + reserve.getTariff().getMaxMinutes() + " minutos");
+        infoRow.createCell(3).setCellValue(reserve.getGroup().size());
+        infoRow.createCell(4).setCellValue(reserve.getGroup().iterator().next().getName());
+
+        // Crear encabezados para el detalle de pago
+        Row paymentHeaderRow = sheet.createRow(3);
+        paymentHeaderRow.createCell(0).setCellValue("Nombre de Cliente");
+        paymentHeaderRow.createCell(1).setCellValue("Tarifa Base");
+        paymentHeaderRow.createCell(2).setCellValue("Descuento por Tamaño de Grupo");
+        paymentHeaderRow.createCell(3).setCellValue("Descuento por Cliente Frecuente/Promociones");
+        paymentHeaderRow.createCell(4).setCellValue("Monto Final");
+        paymentHeaderRow.createCell(5).setCellValue("IVA");
+        paymentHeaderRow.createCell(6).setCellValue("Monto Total");
+
+        // Llenar detalle de pago
+        int rowNum = 4;
+        double totalAmount = 0;
+        double iva = 0;
+        for (UserEntity user : reserve.getGroup()) {
+            Row row = sheet.createRow(rowNum++);
+            double basePrice = reserve.getTariff().getRegularPrice();
+            double groupDiscount = calculateGroupSizeDiscount(reserve.getGroup().size());
+            double frequentDiscount = calculateFrequentCustomerDiscount(user, reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
+            double bestDiscount = Math.max(groupDiscount, frequentDiscount);
+            double finalAmount = basePrice * (1 - bestDiscount);
+            double ivaAmount = finalAmount * 0.19;
+            double totalWithIva = finalAmount + ivaAmount;
+
+            row.createCell(0).setCellValue(user.getName());
+            row.createCell(1).setCellValue(basePrice);
+            row.createCell(2).setCellValue(groupDiscount);
+            row.createCell(3).setCellValue(frequentDiscount);
+            row.createCell(4).setCellValue(finalAmount);
+            row.createCell(5).setCellValue(ivaAmount);
+            row.createCell(6).setCellValue(totalWithIva);
+
+            totalAmount += finalAmount;
+            iva += ivaAmount;
+        }
+
+        // Calcular el monto total e IVA
+        Row totalRow = sheet.createRow(rowNum++);
+        totalRow.createCell(5).setCellValue("IVA Total:");
+        totalRow.createCell(6).setCellValue(iva);
+        Row finalRow = sheet.createRow(rowNum);
+        finalRow.createCell(5).setCellValue("Monto Total:");
+        finalRow.createCell(6).setCellValue(totalAmount + iva);
+
+        // Escribir el archivo Excel a un ByteArrayOutputStream
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        workbook.write(bos);
+        workbook.close();
+        return bos.toByteArray();
+    }
+
+    public byte[] convertExcelToPdf(byte[] excelData) throws IOException, DocumentException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(excelData);
+        Workbook workbook = WorkbookFactory.create(bis);
+
+        Document document = new Document();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        PdfWriter.getInstance(document, bos);
+        document.open();
+
+        // Convertir el contenido del Excel a PDF (implementar la lógica aquí)
+        Sheet sheet = workbook.getSheetAt(0);
+        for (Row row : sheet) {
+            for (Cell cell : row) {
+                document.add(new Paragraph(cell.toString()));
+            }
+            document.add(new Paragraph("\n"));
+        }
+        document.close();
+        workbook.close();
+
+        return bos.toByteArray();
+    }
+
+    public JavaMailSender createJavaMailSender(String host, int port, String username, String password) {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost(host);
+        mailSender.setPort(port);
+        mailSender.setUsername(username);
+        mailSender.setPassword(password);
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.transport.protocol", "smtp");
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.debug", "true");
+
+        return mailSender;
+    }
+
+    public void sendEmailWithAttachment(String host, int port, String username, String password, String to, String subject, String text, byte[] attachmentData, String attachmentName) {
+        try {
+            JavaMailSender mailSender = createJavaMailSender(host, port, username, password);
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+            helper.setTo(to);
+            helper.setSubject(subject);
+            helper.setText(text);
+            helper.addAttachment(attachmentName, new ByteArrayDataSource(attachmentData, "application/pdf"));
+
+            mailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            // Manejar la excepción según sea necesario
+        }
+    }
+
+    public void sendPaymentReceipts(ReserveEntity reserve) throws IOException, DocumentException {
+        byte[] excelData = generatePaymentReceipt(reserve);
+        byte[] pdfData = convertExcelToPdf(excelData);
+
+        for (UserEntity user : reserve.getGroup()) {
+            sendEmailWithAttachment(
+                    "smtp.example.com", 587, "your_email@example.com", "your_password",
+                    user.getEmail(), "Comprobante de Pago", "Adjunto encontrará el comprobante de pago de su reserva.",
+                    pdfData, "Comprobante_de_Pago.pdf"
+            );
+        }
+    }
+
+    public boolean isSpecialDay(LocalDate date) {
         return specialDayRepository.findAll().stream()
                 .anyMatch(specialDay -> specialDay.getDate().equals(date));
     }
 
-    private boolean isWeekend(LocalDate date) {
+    public boolean isWeekend(LocalDate date) {
         return date.getDayOfWeek().getValue() == 6 || date.getDayOfWeek().getValue() == 7;
     }
 
-    private boolean isBirthday(UserEntity user, Date date) {
+    public boolean isBirthday(UserEntity user, Date date) {
         if(user.getBirthDate() == null || user.getBirthDate().getMonth() != date.getMonth()) {
             return false;
         }

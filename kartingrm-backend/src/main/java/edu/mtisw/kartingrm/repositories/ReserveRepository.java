@@ -14,5 +14,6 @@ public interface ReserveRepository extends JpaRepository<ReserveEntity, Long> {
 
     List<ReserveEntity> getReserveByDate_DateBetween(int dateDateAfter, int dateDateBefore);
 
-    public List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month);
+
+    List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month);
 }

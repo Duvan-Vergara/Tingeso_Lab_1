@@ -28,8 +28,8 @@ public class UserEntity {
     @Column(nullable = false, name = "lastname")
     private String lastName;
 
-    @Column(nullable = false, name = "children")
-    private int children;
+    @Column(nullable = false, name = "email")
+    private String email;
 
     @DateTimeFormat(pattern = "dd-mm-yyyy")
     @Column(nullable = false, name = "birthdate")
