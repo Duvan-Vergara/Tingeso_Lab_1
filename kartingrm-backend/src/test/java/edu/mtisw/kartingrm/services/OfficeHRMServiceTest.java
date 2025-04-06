@@ -4,6 +4,7 @@ import edu.mtisw.kartingrm.entities.UserEntity;
 import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
+/*
 class
 {
 
@@ -139,3 +140,4 @@ class
     }
 
 }
+*/

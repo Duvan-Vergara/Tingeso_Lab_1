@@ -12,6 +12,7 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -31,114 +32,86 @@ public class UserControllerTest {
 
 
     @Test
-    public void listEmployees_ShouldReturnUsers() throws Exception {
-        UserEntity employee1 = new UserEntity(1L,
-                "12345678-9",
-                "Alex Garcia",
-                50000,
-                2,
-                "A");
+    public void listUsers_ShouldReturnUsers() throws Exception {
+        UserEntity user1 = new UserEntity(1L, "12345678-9", "Alex", "Garcia", "alex@example.com", new Date(96, 5, 15)); // 15-06-1996
+        UserEntity user2 = new UserEntity(2L, "98765432-1", "Beatriz", "Miranda", "beatriz@example.com", new Date(93, 8, 20)); // 20-09-1993
 
-        UserEntity employee2 = new UserEntity(2L,
-                "98765432-1",
-                "Alex Garcia",
-                60000,
-                1,
-                "A");
+        List<UserEntity> userList = new ArrayList<>(Arrays.asList(user1, user2));
 
-        List<UserEntity> employeeList = new ArrayList<>(Arrays.asList(employee1, employee2));
+        given(userService.getUsers()).willReturn((ArrayList<UserEntity>) userList);
 
-        given(userService.getUsers()).willReturn((ArrayList<UserEntity>) employeeList);
-
-        mockMvc.perform(get("/api/v1/employees/"))
+        mockMvc.perform(get("/api/v1/users/"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$", hasSize(2)))
-                .andExpect(jsonPath("$[0].name", is("Alex Garcia")))
-                .andExpect(jsonPath("$[1].name", is("Alex Garcia")));
+                .andExpect(jsonPath("$[0].name", is("Alex")))
+                .andExpect(jsonPath("$[1].name", is("Beatriz")));
     }
 
     @Test
-    public void getEmployeeById_ShouldReturnEmployee() throws Exception {
-        UserEntity employee = new UserEntity(1L,
-                "12345678-9",
-                "Beatriz Miranda",
-                50000,
-                2,
-                "A");
+    public void getUserById_ShouldReturnUser() throws Exception {
+        UserEntity user = new UserEntity(1L, "12345678-9", "Beatriz", "Miranda", "beatriz@example.com", new Date());
 
-        given(userService.getUserById(1L)).willReturn(employee);
+        given(userService.getUserById(1L)).willReturn(user);
 
-        mockMvc.perform(get("/api/v1/employees/{id}", 1L))
+        mockMvc.perform(get("/api/v1/users/{id}", 1L))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name", is("Beatriz Miranda")));
+                .andExpect(jsonPath("$.name", is("Beatriz")));
     }
 
     @Test
-    public void saveEmployee_ShouldReturnSavedEmployee() throws Exception {
-        //EmployeeEntity employeeToSave = new EmployeeEntity(null, "12345678-9", "New Employee", 40000, 0, "B");
-        UserEntity savedEmployee = new UserEntity(1L,
-                "17.777.457-8",
-                "Esteban Marquez",
-                40000,
-                0,
-                "B");
+    public void saveUser_ShouldReturnSavedUser() throws Exception {
+        UserEntity savedUser = new UserEntity(1L, "17.777.457-8", "Esteban", "Marquez", "esteban@example.com", new Date());
 
-        given(userService.saveUser(Mockito.any(UserEntity.class))).willReturn(savedEmployee);
+        given(userService.saveUser(Mockito.any(UserEntity.class))).willReturn(savedUser);
 
-        String employeeJson = """
+        String userJson = """
             {
                 "rut": "17.777.457-8",
-                "name": "Esteban Marquez",
-                "salary": 40000,
-                "children": 0,
-                "category": "B"
+                "name": "Esteban",
+                "lastName": "Marquez",
+                "email": "esteban@example.com",
+                "birthDate": "2000-01-01"
             }
             """;
 
-        mockMvc.perform(post("/api/v1/employees/")
+        mockMvc.perform(post("/api/v1/users/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson))
+                        .content(userJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("Esteban Marquez")));
+                .andExpect(jsonPath("$.name", is("Esteban")));
     }
 
     @Test
-    public void updateEmployee_ShouldReturnUpdatedEmployee() throws Exception {
-        UserEntity updatedEmployee = new UserEntity(1L,
-                "12.345.678-9",
-                "Marco Jimenez",
-                45000,
-                1,
-                "B");
+    public void updateUser_ShouldReturnUpdatedUser() throws Exception {
+        UserEntity updatedUser = new UserEntity(1L, "12.345.678-9", "Marco", "Jimenez", "marco@example.com", new Date());
 
-        given(userService.updateUser(Mockito.any(UserEntity.class))).willReturn(updatedEmployee);
+        given(userService.updateUser(Mockito.any(UserEntity.class))).willReturn(updatedUser);
 
-        String employeeJson = """
+        String userJson = """
             {
                 "id": 1,
                 "rut": "12.345.678-9",
-                "name": "Marco Jimenez",
-                "salary": 45000,
-                "children": 1,
-                "category": "B"
+                "name": "Marco",
+                "lastName": "Jimenez",
+                "email": "marco@example.com",
+                "birthDate": "2000-01-01"
             }
             """;
 
-
-        mockMvc.perform(put("/api/v1/employees/")
+        mockMvc.perform(put("/api/v1/users/")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(employeeJson))
+                        .content(userJson))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name", is("Marco Jimenez")));
+                .andExpect(jsonPath("$.name", is("Marco")));
     }
 
     @Test
-    public void deleteEmployeeById_ShouldReturn204() throws Exception {
-        when(userService.deleteUser(1L)).thenReturn(true); // Assuming the method returns a boolean
+    public void deleteUserById_ShouldReturn204() throws Exception {
+        when(userService.deleteUser(1L)).thenReturn(true);
 
-        mockMvc.perform(delete("/api/v1/employees/{id}", 1L))
+        mockMvc.perform(delete("/api/v1/users/{id}", 1L))
                 .andExpect(status().isNoContent());
     }
 }
