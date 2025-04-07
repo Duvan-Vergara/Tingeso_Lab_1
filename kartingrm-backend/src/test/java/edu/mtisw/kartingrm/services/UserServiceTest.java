@@ -61,6 +61,18 @@ public class UserServiceTest {
     }
 
     @Test
+    void whenGetUserByRut_thenReturnUser() {
+        // Given
+        when(userRepository.findByRut("12345678-9")).thenReturn(user);
+
+        // When
+        UserEntity result = userService.getUserByRut("12345678-9");
+
+        // Then
+        assertThat(result).isEqualTo(user);
+    }
+
+    @Test
     void whenGetUserById_thenReturnUser() {
         // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(user));
