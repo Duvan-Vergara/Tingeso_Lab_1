@@ -16,6 +16,8 @@ import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class UserServiceTest {
 
@@ -107,4 +109,16 @@ public class UserServiceTest {
         // Then
         assertThat(result).isTrue();
     }
+
+    @Test
+    void whenDeleteUserThrowsException_thenCatchBlockExecutes() {
+        // Simula un caso donde se lanza una excepción
+        doThrow(new RuntimeException("Error al eliminar")).when(userRepository).deleteById(1L);
+
+        Exception exception = assertThrows(Exception.class, () -> userService.deleteUser(1L));
+
+        assertEquals("Error al eliminar", exception.getMessage());
+        verify(userRepository, times(1)).deleteById(1L);
+    }
+
 }
