@@ -4,6 +4,7 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 import edu.mtisw.kartingrm.entities.ReserveEntity;
+import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.ReserveRepository;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
@@ -20,9 +21,7 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.temporal.TemporalAdjusters;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.poi.ss.usermodel.*;
@@ -32,7 +31,6 @@ import com.itextpdf.text.Document;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
-import java.util.Properties;
 
 @Service
 public class ReserveService {
@@ -41,16 +39,32 @@ public class ReserveService {
     ReserveRepository reserveRepository;
 
     @Autowired
-    TariffRepository tariffRepository;
-
-    @Autowired
     SpecialDayRepository specialDayRepository;
 
-    public ArrayList<ReserveEntity> getReserves(){
-        return (ArrayList<ReserveEntity>) reserveRepository.findAll();
-    }
+    @Autowired
+    TariffRepository tariffRepository;
 
+    public List<ReserveEntity> getReserves() { return new ArrayList<>(reserveRepository.findAll()); }
+
+    /*
     public ReserveEntity saveReserve(ReserveEntity reserve){
+        return reserveRepository.save(reserve);
+    }
+    */
+
+    public ReserveEntity saveReserve(ReserveEntity reserve) {
+        // Obtener las tarifas disponibles
+        List<TariffEntity> availableTariffs = tariffRepository.getAllTariffs();
+
+        // Calcular la tarifa si no está especificada
+        if (reserve.getTariff() == null) {
+            TariffEntity calculatedTariff = calculateTariffForReserve(reserve.getBegin(), reserve.getFinish(), availableTariffs);
+            reserve.setTariff(calculatedTariff);
+
+            // Ajustar la hora de finalización según la tarifa calculada
+            reserve.setFinish(Date.from(reserve.getBegin().toInstant().plusSeconds(calculatedTariff.getMaxMinutes() * 60)));
+        }
+        // Guardar la reserva
         return reserveRepository.save(reserve);
     }
 
@@ -62,17 +76,19 @@ public class ReserveService {
         return reserveRepository.save(reserve);
     }
 
-    public List<ReserveEntity> getReserveByDay(int day){ return reserveRepository.getReserveByDate_Day(day); }
+    public List<ReserveEntity> getReserveByDay(int day) { return reserveRepository.getReserveByDate_Day(day); }
 
-    public List<ReserveEntity> getReserveByMonth(int month){ return reserveRepository.getReserveByDate_Month(month); }
+    public List<ReserveEntity> getReserveByMonth(int month) { return reserveRepository.getReserveByDate_Month(month); }
 
     public List<List<ReserveEntity>> getReserveByWeek(int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
         LocalDate startDate = date.with(TemporalAdjusters.previousOrSame(date.getDayOfWeek().getValue() == 7 ? date.getDayOfWeek() : date.getDayOfWeek().minus(1)));
         LocalDate endDate = startDate.plusDays(6);
-        int startDay = startDate.getDayOfMonth();
-        int endDay = endDate.getDayOfMonth();
-        List<ReserveEntity> reserves = reserveRepository.getReserveByDate_DateBetween(startDay, endDay);
+
+        // Obtener reservas entre las fechas
+        List<ReserveEntity> reserves = reserveRepository.getReserveByDate_DateBetween(startDate, endDate);
+
+        // Agrupar reservas por día de la semana
         return IntStream.range(0, 7)
                 .mapToObj(i -> startDate.plusDays(i))
                 .map(d -> reserves.stream().filter(r -> r.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().equals(d)).collect(Collectors.toList()))
@@ -80,11 +96,17 @@ public class ReserveService {
     }
 
     public List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month) {
+        return reserveRepository.getReservesByDateMonthAndRut(rut, month);
+    }
+
+    /*
+    public List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month) {
         List<ReserveEntity> reserves = reserveRepository.getReserveByDate_Month(month);
         return reserves.stream()
                 .filter(reserve -> reserve.getGroup().stream().anyMatch(user -> user.getRut().equals(rut)))
                 .collect(Collectors.toList());
     }
+    */
 
     public boolean deleteReserveById(Long id) throws Exception {
         try {
@@ -149,11 +171,38 @@ public class ReserveService {
         }
     }
 
+    public TariffEntity calculateTariffForReserve(Date startTime, Date endTime, List<TariffEntity> availableTariffs) {
+        // Ordenar las tarifas por duración máxima
+        availableTariffs.sort(Comparator.comparingInt(TariffEntity::getMaxMinutes));
+
+        // Calcular la duración en minutos
+        long durationInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+
+        // Si la duración es menor que la tarifa más corta, asignar la tarifa mínima
+        if (durationInMinutes <= availableTariffs.get(0).getMaxMinutes()) {
+            return availableTariffs.get(0);
+        }
+
+        // Si la duración es mayor que la tarifa más larga, asignar la tarifa máxima
+        if (durationInMinutes > availableTariffs.get(availableTariffs.size() - 1).getMaxMinutes()) {
+            return availableTariffs.get(availableTariffs.size() - 1);
+        }
+
+        // Buscar la tarifa adecuada redondeando hacia arriba
+        for (TariffEntity tariff : availableTariffs) {
+            if (durationInMinutes <= tariff.getMaxMinutes()) {
+                return tariff;
+            }
+        }
+
+        // Si no se encuentra una tarifa adecuada (caso improbable), lanzar excepción
+        throw new IllegalArgumentException("No se encontró una tarifa adecuada para la duración especificada.");
+    }
+
     public double calculateFinalPrice(ReserveEntity reserve, int month) {
         double totalPrice = 0;
         int birthdayLimit = calculateBirthdayLimit(reserve.getGroup().size());
         double basePrice = getTariffForDate(reserve);
-        LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
 
         for (UserEntity user : reserve.getGroup()) {
             double bestDiscount = calculateBestDiscount(user, reserve, month);
@@ -248,7 +297,6 @@ public class ReserveService {
         PdfWriter.getInstance(document, bos);
         document.open();
 
-        // Convertir el contenido del Excel a PDF (implementar la lógica aquí)
         Sheet sheet = workbook.getSheetAt(0);
         for (Row row : sheet) {
             for (Cell cell : row) {
@@ -292,7 +340,6 @@ public class ReserveService {
             mailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
-            // Manejar la excepción según sea necesario
         }
     }
 

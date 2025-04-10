@@ -13,8 +13,6 @@ import jakarta.persistence.*;
 @AllArgsConstructor
 public class TariffEntity {
 
-
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(unique = true, nullable = false)

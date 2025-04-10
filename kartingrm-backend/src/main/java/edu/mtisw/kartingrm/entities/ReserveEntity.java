@@ -24,16 +24,20 @@ public class ReserveEntity {
     @Column(nullable = false, name = "reserveday")
     private Date date;
 
-    @DateTimeFormat(pattern = "hh-mm")
+    @DateTimeFormat(pattern = "hh:mm")
     @Column(nullable = false, name = "begin")
     private Date begin;
 
-    @DateTimeFormat(pattern = "hh-mm")
+    @DateTimeFormat(pattern = "hh:mm")
     @Column(nullable = false, name = "finish")
     private Date finish;
 
     @ManyToMany
-    @Column(nullable = false, name = "members")
+    @JoinTable(
+            name = "reserves_users",
+            joinColumns = @JoinColumn(name = "reserve_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private Set<UserEntity> group;
 
     @ManyToOne

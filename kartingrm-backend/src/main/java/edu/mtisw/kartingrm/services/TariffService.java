@@ -5,14 +5,16 @@ import edu.mtisw.kartingrm.repositories.TariffRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class TariffService {
+
     @Autowired
     TariffRepository tariffRepository;
 
-    public ArrayList<TariffEntity> getTariffs(){
-        return (ArrayList<TariffEntity>) tariffRepository.findAll();
+    public List<TariffEntity> getTariffs(){
+        return new ArrayList<>(tariffRepository.getAllTariffs());
     }
 
     public TariffEntity saveTariff(TariffEntity tariff) {
@@ -44,7 +46,6 @@ public class TariffService {
     private void calculateAdjustedPrices(TariffEntity tariff) {
         // Calcular precio de fin de semana
         tariff.setWeekendPrice(tariff.getRegularPrice() * (1 - tariff.getWeekendDiscountPercentage() / 100));
-
         // Calcular precio de día especial
         tariff.setHolidayPrice(tariff.getRegularPrice() * (1 + tariff.getHolidayIncreasePercentage() / 100));
     }

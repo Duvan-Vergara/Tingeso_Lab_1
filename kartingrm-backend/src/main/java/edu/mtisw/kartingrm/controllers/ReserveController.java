@@ -34,7 +34,7 @@ public class ReserveController {
     }
 
     @GetMapping("/{rut}/{month}")
-    public ResponseEntity<List<ReserveEntity>> listReservesBy(@PathVariable("rut") String rut, @PathVariable("month") int month) {
+    public ResponseEntity<List<ReserveEntity>> listReservesByRutAndMonth(@PathVariable("rut") String rut, @PathVariable("month") int month) {
         List<ReserveEntity> reserves = reserveService.getReservesByDate_MonthANDRut(rut,month);
         return ResponseEntity.ok(reserves);
     }
@@ -50,4 +50,24 @@ public class ReserveController {
         var isDeleted = reserveService.deleteReserveById(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/day/{day}")
+    public ResponseEntity<List<ReserveEntity>> listReservesByDay(@PathVariable("day") int day) {
+        List<ReserveEntity> reserves = reserveService.getReserveByDay(day);
+        return ResponseEntity.ok(reserves);
+    }
+
+    @GetMapping("/month/{month}")
+    public ResponseEntity<List<ReserveEntity>> listReservesByMonth(@PathVariable("month") int month) {
+        List<ReserveEntity> reserves = reserveService.getReserveByMonth(month);
+        return ResponseEntity.ok(reserves);
+    }
+
+    @GetMapping("/week/{year}/{month}/{week}")
+    public ResponseEntity<List<List<ReserveEntity>>> listReservesByWeek(@PathVariable("year") int year, @PathVariable("month") int month, @PathVariable("week") int week) {
+        List<List<ReserveEntity>> reserves = reserveService.getReserveByWeek(year, month, week);
+        return ResponseEntity.ok(reserves);
+    }
+
+
 }
