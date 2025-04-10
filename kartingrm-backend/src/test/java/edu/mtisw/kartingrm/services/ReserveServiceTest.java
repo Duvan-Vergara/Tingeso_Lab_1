@@ -15,6 +15,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
@@ -87,8 +88,11 @@ public class ReserveServiceTest {
         reserve1 = new ReserveEntity();
         reserve1.setId(1L);
         reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve1.setBegin('17:00:00');
-        reserve1.setFinish('17:30:00');
+        reserve1.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve1.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve1.setGroup(group1);
+        reserve1.setTariff(tariff1);
+        reserve1.setFinalPrice(0.0);
 
         reserve = new ReserveEntity();
         reserve.setId(1L);
@@ -226,7 +230,6 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateFinalPrice_thenReturnCorrectPrice() {
         // Given
-        reserve1.
         when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1))
                 .thenReturn(List.of());
 
@@ -234,7 +237,41 @@ public class ReserveServiceTest {
         double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
 
         // Then
-        assertThat(finalPrice).isEqualTo(100.0);
+        assertThat(finalPrice).isEqualTo(40500.0);
+    }
+
+    @Test
+    void whenCalculateFinalPrice2_thenReturnCorrectPrice() {
+        // Given
+        // Simular que el usuario tiene una reserva previa en el mes
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1))
+                .thenReturn(List.of(reserve1));
+
+        // Calcular el precio base según la tarifa
+        double basePrice = tariff1.getRegularPrice();
+
+        // Calcular el descuento por tamaño del grupo
+        double groupDiscount = reserveService.calculateGroupSizeDiscount(reserve.getGroup().size());
+        List<Double> descuentos = new ArrayList<>() ;
+        double descfrecuent;
+        // Calcular el descuento por cliente frecuente
+        for (UserEntity  u : reserve1.getGroup()){
+            descfrecuent = reserveService.calculateFrequentCustomerDiscount(u, reserve.getDate().getMonth() + 1);
+            descuentos.add(Math.max(groupDiscount, descfrecuent));
+        }
+
+        // Calcular el precio final esperado
+        double expectedPrice = 0.0;
+        for (double d : descuentos){
+            expectedPrice += basePrice * (1 - d);
+        }
+
+        // When
+        double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
+
+        // Then
+        System.out.println("Final Price: " + finalPrice + "Precio Calculado: " + expectedPrice);
+        assertThat(finalPrice).isEqualTo(expectedPrice);
     }
 
     @Test

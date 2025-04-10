@@ -12,6 +12,7 @@ import java.util.List;
 @RequestMapping("/api/v1/reserves")
 @CrossOrigin("*")
 public class ReserveController {
+
     @Autowired
     ReserveService reserveService;
 
@@ -68,6 +69,5 @@ public class ReserveController {
         List<List<ReserveEntity>> reserves = reserveService.getReserveByWeek(year, month, week);
         return ResponseEntity.ok(reserves);
     }
-
 
 }
