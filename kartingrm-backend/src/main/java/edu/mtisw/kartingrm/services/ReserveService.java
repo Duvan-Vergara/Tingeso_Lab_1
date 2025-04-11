@@ -9,6 +9,7 @@ import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.ReserveRepository;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
+import edu.mtisw.kartingrm.utils.ComplementReserve;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -44,13 +45,10 @@ public class ReserveService {
     @Autowired
     TariffRepository tariffRepository;
 
-    public List<ReserveEntity> getReserves() { return new ArrayList<>(reserveRepository.findAll()); }
+    @Autowired
+    ComplementReserve complementReserve;
 
-    /*
-    public ReserveEntity saveReserve(ReserveEntity reserve){
-        return reserveRepository.save(reserve);
-    }
-    */
+    public List<ReserveEntity> getReserves() { return new ArrayList<>(reserveRepository.findAll()); }
 
     public ReserveEntity saveReserve(ReserveEntity reserve) {
         // Obtener las tarifas disponibles
@@ -99,15 +97,6 @@ public class ReserveService {
         return reserveRepository.getReservesByDateMonthAndRut(rut, month);
     }
 
-    /*
-    public List<ReserveEntity> getReservesByDate_MonthANDRut(String rut, int month) {
-        List<ReserveEntity> reserves = reserveRepository.getReserveByDate_Month(month);
-        return reserves.stream()
-                .filter(reserve -> reserve.getGroup().stream().anyMatch(user -> user.getRut().equals(rut)))
-                .collect(Collectors.toList());
-    }
-    */
-
     public boolean deleteReserveById(Long id) throws Exception {
         try {
             reserveRepository.deleteById(id);
@@ -115,49 +104,6 @@ public class ReserveService {
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
-    }
-
-    public int calculateBirthdayLimit(int numberOfPeople) {
-        if (numberOfPeople >= 3 && numberOfPeople <= 5) {
-            return 1;
-        } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
-            return 2;
-        }
-        return 0;
-    }
-
-    public double calculateGroupSizeDiscount(int numberOfPeople) {
-        if (numberOfPeople >= 3 && numberOfPeople <= 5) {
-            return 0.10;
-        } else if (numberOfPeople >= 6 && numberOfPeople <= 10) {
-            return 0.20;
-        } else if (numberOfPeople >= 11 && numberOfPeople <= 15) {
-            return 0.30;
-        }
-        return 0;
-    }
-
-    public double calculateFrequentCustomerDiscount(UserEntity user, int month) {
-        List<ReserveEntity> visits = getReservesByDate_MonthANDRut(user.getRut(), month);
-        int visitsCount = visits.size();
-        if (visitsCount >= 7) {
-            return 0.30;
-        } else if (visitsCount >= 5) {
-            return 0.20;
-        } else if (visitsCount >= 2) {
-            return 0.10;
-        }
-        return 0;
-    }
-
-    public double calculateBestDiscount(UserEntity user, ReserveEntity reserve, int month) {
-        double bestDiscount = 0;
-        int numberOfPeople = reserve.getGroup().size();
-        // Descuento por número de personas
-        bestDiscount = Math.max(bestDiscount, calculateGroupSizeDiscount(numberOfPeople));
-        // Descuento para clientes frecuentes
-        bestDiscount = Math.max(bestDiscount, calculateFrequentCustomerDiscount(user, month));
-        return bestDiscount;
     }
 
     public double getTariffForDate(ReserveEntity reserve) {
@@ -194,26 +140,31 @@ public class ReserveService {
                 return tariff;
             }
         }
-
         // Si no se encuentra una tarifa adecuada (caso improbable), lanzar excepción
         throw new IllegalArgumentException("No se encontró una tarifa adecuada para la duración especificada.");
     }
 
     public double calculateFinalPrice(ReserveEntity reserve, int month) {
         double totalPrice = 0;
-        int birthdayLimit = calculateBirthdayLimit(reserve.getGroup().size());
+        int birthdayLimit = complementReserve.calculateBirthdayLimit(reserve.getGroup().size());
         double basePrice = getTariffForDate(reserve);
 
         for (UserEntity user : reserve.getGroup()) {
-            double bestDiscount = calculateBestDiscount(user, reserve, month);
+            // Descuento por tamaño de grupo
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), month);
+
+            double bestDiscount = complementReserve.calculateBestDiscount(reserve, userReserves);
+
             // Descuento por cumpleaños
             if (isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
                 bestDiscount = Math.max(bestDiscount, 0.50);
                 birthdayLimit--;
             }
+
             // Aplicar el descuento al precio base por usuario
             totalPrice += basePrice * (1 - bestDiscount);
         }
+
         return totalPrice;
     }
 
@@ -254,8 +205,9 @@ public class ReserveService {
         for (UserEntity user : reserve.getGroup()) {
             Row row = sheet.createRow(rowNum++);
             double basePrice = reserve.getTariff().getRegularPrice();
-            double groupDiscount = calculateGroupSizeDiscount(reserve.getGroup().size());
-            double frequentDiscount = calculateFrequentCustomerDiscount(user, reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
+            double groupDiscount = complementReserve.calculateGroupSizeDiscount(reserve.getGroup().size());
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
+            double frequentDiscount = complementReserve.calculateFrequentCustomerDiscount(userReserves);
             double bestDiscount = Math.max(groupDiscount, frequentDiscount);
             double finalAmount = basePrice * (1 - bestDiscount);
             double ivaAmount = finalAmount * 0.19;

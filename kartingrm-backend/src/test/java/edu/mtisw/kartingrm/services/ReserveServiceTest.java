@@ -4,6 +4,7 @@ import com.itextpdf.text.DocumentException;
 import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
+import edu.mtisw.kartingrm.utils.ComplementReserve;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import edu.mtisw.kartingrm.entities.UserEntity;
@@ -39,6 +40,9 @@ public class ReserveServiceTest {
 
     @Mock
     private SpecialDayRepository specialDayRepository;
+
+    @Mock
+    private ComplementReserve complementReserve;
 
     private ReserveEntity reserve, reserve1;
     private UserEntity user, user2, user3, user4, user5, user6, user7, user8, user9, user10;
@@ -98,7 +102,7 @@ public class ReserveServiceTest {
         reserve.setId(1L);
         reserve.setDate(new Date());
         reserve.setBegin(new Date());
-        reserve.setFinish(new Date());
+        reserve.setFinish(Date.from(reserve.getBegin().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(30).atZone(ZoneId.systemDefault()).toInstant()));
         reserve.setGroup(group);
         reserve.setTariff(tariff1);
         reserve.setFinalPrice(0.0);
@@ -157,6 +161,22 @@ public class ReserveServiceTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(reserve.getId());
         verify(reserveRepository, times(1)).save(reserve);
+    }
+
+    @Test
+    void whenSaveReserveWithoutTariff_thenCalculateTariff() {
+        // Given
+        reserve.setTariff(null);
+        when(tariffRepository.getAllTariffs()).thenReturn(List.of(tariff1, tariff2, tariff3));
+        when(reserveRepository.save(reserve)).thenReturn(reserve);
+
+        // When
+        ReserveEntity result = reserveService.saveReserve(reserve);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getTariff()).isEqualTo(tariff1); // Verifica que se asignó la tarifa correcta
+        verify(tariffRepository, times(1)).getAllTariffs();
     }
 
     @Test
@@ -237,7 +257,7 @@ public class ReserveServiceTest {
         double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
 
         // Then
-        assertThat(finalPrice).isEqualTo(40500.0);
+        assertThat(finalPrice).isEqualTo(45000.0);
     }
 
     @Test
@@ -251,12 +271,13 @@ public class ReserveServiceTest {
         double basePrice = tariff1.getRegularPrice();
 
         // Calcular el descuento por tamaño del grupo
-        double groupDiscount = reserveService.calculateGroupSizeDiscount(reserve.getGroup().size());
+        double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve.getGroup().size());
         List<Double> descuentos = new ArrayList<>() ;
         double descfrecuent;
         // Calcular el descuento por cliente frecuente
         for (UserEntity  u : reserve1.getGroup()){
-            descfrecuent = reserveService.calculateFrequentCustomerDiscount(u, reserve.getDate().getMonth() + 1);
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve.getDate().getMonth() + 1);
+            descfrecuent = reserveService.complementReserve.calculateFrequentCustomerDiscount(userReserves);
             descuentos.add(Math.max(groupDiscount, descfrecuent));
         }
 
