@@ -50,12 +50,12 @@ public class TariffService {
         tariff.setHolidayPrice(tariff.getRegularPrice() * (1 + tariff.getHolidayIncreasePercentage() / 100));
     }
 
-    public TariffEntity getTariffByIdOrLapsOrMaxMinutes(Long id, int laps, int maxMinutes) {
-        if (id != null) {
+    public TariffEntity getTariffByIdOrLapsOrMaxMinutes(Long id, Integer laps, Integer maxMinutes) {
+        if (id != null && id > 0) {
             return getTariffById(id);
-        } else if (laps > 0) {
+        } else if ( laps != null && laps > 0) {
             return getTariffByLaps(laps);
-        } else if (maxMinutes > 0) {
+        } else if (maxMinutes !=null && maxMinutes > 0) {
             return getTariffByMaxMinutes(maxMinutes);
         }
         return null;

@@ -1,12 +1,20 @@
 package edu.mtisw.kartingrm.utils;
 
 import edu.mtisw.kartingrm.entities.ReserveEntity;
+import edu.mtisw.kartingrm.entities.UserEntity;
+import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class ComplementReserve {
+
+    @Autowired
+    private SpecialDayRepository specialDayRepository;
 
     public int calculateBirthdayLimit(int numberOfPeople) {
         if (numberOfPeople >= 3 && numberOfPeople <= 5) {
@@ -49,6 +57,22 @@ public class ComplementReserve {
         bestDiscount = Math.max(bestDiscount, calculateFrequentCustomerDiscount(userReserves));
 
         return bestDiscount;
+    }
+
+    public boolean isSpecialDay(LocalDate date) {
+        return specialDayRepository.findAll().stream()
+                .anyMatch(specialDay -> specialDay.getDate().equals(date));
+    }
+
+    public boolean isWeekend(LocalDate date) {
+        return date.getDayOfWeek().getValue() == 6 || date.getDayOfWeek().getValue() == 7;
+    }
+
+    public boolean isBirthday(UserEntity user, Date date) {
+        if(user.getBirthDate() == null || user.getBirthDate().getMonth() != date.getMonth()) {
+            return false;
+        }
+        return date.getDay() == user.getBirthDate().getDay();
     }
 
 }

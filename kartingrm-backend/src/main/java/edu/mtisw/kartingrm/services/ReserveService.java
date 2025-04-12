@@ -52,7 +52,7 @@ public class ReserveService {
 
     public ReserveEntity saveReserve(ReserveEntity reserve) {
         // Obtener las tarifas disponibles
-        List<TariffEntity> availableTariffs = tariffRepository.getAllTariffs();
+        List<TariffEntity> availableTariffs = new ArrayList<>(tariffRepository.getAllTariffs());
 
         // Calcular la tarifa si no está especificada
         if (reserve.getTariff() == null) {
@@ -108,9 +108,9 @@ public class ReserveService {
 
     public double getTariffForDate(ReserveEntity reserve) {
         LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        if (isSpecialDay(reserveDate)) {
+        if (complementReserve.isSpecialDay(reserveDate)) {
             return reserve.getTariff().getHolidayPrice();
-        } else if (isWeekend(reserveDate)) {
+        } else if (complementReserve.isWeekend(reserveDate)) {
             return reserve.getTariff().getWeekendPrice();
         } else {
             return reserve.getTariff().getRegularPrice();
@@ -119,24 +119,23 @@ public class ReserveService {
 
     public TariffEntity calculateTariffForReserve(Date startTime, Date endTime, List<TariffEntity> availableTariffs) {
         // Ordenar las tarifas por duración máxima
-        availableTariffs.sort(Comparator.comparingInt(TariffEntity::getMaxMinutes));
+        availableTariffs.sort(Comparator.comparingInt(TariffEntity::getTotalDuration));
 
         // Calcular la duración en minutos
         long durationInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
 
         // Si la duración es menor que la tarifa más corta, asignar la tarifa mínima
-        if (durationInMinutes <= availableTariffs.get(0).getMaxMinutes()) {
+        if (durationInMinutes <= availableTariffs.get(0).getTotalDuration()) {
             return availableTariffs.get(0);
         }
 
         // Si la duración es mayor que la tarifa más larga, asignar la tarifa máxima
-        if (durationInMinutes > availableTariffs.get(availableTariffs.size() - 1).getMaxMinutes()) {
+        if (durationInMinutes > availableTariffs.get(availableTariffs.size() - 1).getTotalDuration()) {
             return availableTariffs.get(availableTariffs.size() - 1);
         }
-
         // Buscar la tarifa adecuada redondeando hacia arriba
         for (TariffEntity tariff : availableTariffs) {
-            if (durationInMinutes <= tariff.getMaxMinutes()) {
+            if (durationInMinutes <= tariff.getTotalDuration()) {
                 return tariff;
             }
         }
@@ -156,7 +155,7 @@ public class ReserveService {
             double bestDiscount = complementReserve.calculateBestDiscount(reserve, userReserves);
 
             // Descuento por cumpleaños
-            if (isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
+            if (complementReserve.isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
                 bestDiscount = Math.max(bestDiscount, 0.50);
                 birthdayLimit--;
             }
@@ -306,21 +305,5 @@ public class ReserveService {
                     pdfData, "Comprobante_de_Pago.pdf"
             );
         }
-    }
-
-    public boolean isSpecialDay(LocalDate date) {
-        return specialDayRepository.findAll().stream()
-                .anyMatch(specialDay -> specialDay.getDate().equals(date));
-    }
-
-    public boolean isWeekend(LocalDate date) {
-        return date.getDayOfWeek().getValue() == 6 || date.getDayOfWeek().getValue() == 7;
-    }
-
-    public boolean isBirthday(UserEntity user, Date date) {
-        if(user.getBirthDate() == null || user.getBirthDate().getMonth() != date.getMonth()) {
-            return false;
-        }
-        return date.getDay() == user.getBirthDate().getDay();
     }
 }

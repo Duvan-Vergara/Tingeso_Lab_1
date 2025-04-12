@@ -106,6 +106,15 @@ public class ReserveServiceTest {
         reserve.setGroup(group);
         reserve.setTariff(tariff1);
         reserve.setFinalPrice(0.0);
+
+        reserve1 = new ReserveEntity();
+        reserve1.setId(1L);
+        reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        reserve1.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve1.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve1.setGroup(group1);
+        reserve1.setTariff(tariff1);
+        reserve1.setFinalPrice(0.0);
     }
 
     private boolean isSpecialDay(LocalDate date) {
@@ -248,6 +257,21 @@ public class ReserveServiceTest {
     }
 
     @Test
+    void whenGetReserveByMonthAndRut_thenReturnList() {
+        // Given
+        List<ReserveEntity> reserves = List.of(reserve);
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1)).thenReturn(reserves);
+
+        // When
+        List<ReserveEntity> result = reserveService.getReservesByDate_MonthANDRut(user.getRut(), reserve.getDate().getMonth() + 1);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.size()).isEqualTo(1);
+        verify(reserveRepository, times(1)).getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1);
+    }
+
+    @Test
     void whenCalculateFinalPrice_thenReturnCorrectPrice() {
         // Given
         when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1))
@@ -264,19 +288,19 @@ public class ReserveServiceTest {
     void whenCalculateFinalPrice2_thenReturnCorrectPrice() {
         // Given
         // Simular que el usuario tiene una reserva previa en el mes
-        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1))
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonth() + 1))
                 .thenReturn(List.of(reserve1));
 
         // Calcular el precio base según la tarifa
         double basePrice = tariff1.getRegularPrice();
 
         // Calcular el descuento por tamaño del grupo
-        double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve.getGroup().size());
+        double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve1.getGroup().size());
         List<Double> descuentos = new ArrayList<>() ;
         double descfrecuent;
         // Calcular el descuento por cliente frecuente
         for (UserEntity  u : reserve1.getGroup()){
-            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve.getDate().getMonth() + 1);
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonth() + 1);
             descfrecuent = reserveService.complementReserve.calculateFrequentCustomerDiscount(userReserves);
             descuentos.add(Math.max(groupDiscount, descfrecuent));
         }
@@ -288,10 +312,45 @@ public class ReserveServiceTest {
         }
 
         // When
-        double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
+        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
 
         // Then
-        System.out.println("Final Price: " + finalPrice + "Precio Calculado: " + expectedPrice);
+        System.out.println("Test precio 2 :\n Precio esperado: " + expectedPrice + " Precio calculado: " + finalPrice);
+        assertThat(finalPrice).isEqualTo(expectedPrice);
+    }
+
+    @Test
+    void whenCalculateFinalPrice3_thenReturnCorrectPrice() {
+        // Given
+        // Simular que el usuario tiene una reserva previa en el mes
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonth() + 1))
+                .thenReturn(List.of(reserve1, reserve));
+
+        // Calcular el precio base según la tarifa
+        double basePrice = tariff1.getRegularPrice();
+
+        // Calcular el descuento por tamaño del grupo
+        double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve1.getGroup().size());
+        List<Double> descuentos = new ArrayList<>() ;
+        double descfrecuent;
+        // Calcular el descuento por cliente frecuente
+        for (UserEntity  u : reserve1.getGroup()){
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonth() + 1);
+            descfrecuent = reserveService.complementReserve.calculateFrequentCustomerDiscount(userReserves);
+            descuentos.add(Math.max(groupDiscount, descfrecuent));
+        }
+
+        // Calcular el precio final esperado
+        double expectedPrice = 0.0;
+        for (double d : descuentos){
+            expectedPrice += basePrice * (1 - d);
+        }
+
+        // When
+        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
+
+        // Then
+        System.out.println("Test precio 3 :\n Precio esperado: " + expectedPrice + " Precio calculado: " + finalPrice);
         assertThat(finalPrice).isEqualTo(expectedPrice);
     }
 
