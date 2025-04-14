@@ -5,6 +5,12 @@ import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
 import edu.mtisw.kartingrm.utils.ComplementReserve;
+import jakarta.mail.MessagingException;
+import jakarta.mail.Session;
+import jakarta.mail.internet.MimeMessage;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import edu.mtisw.kartingrm.entities.UserEntity;
@@ -13,7 +19,10 @@ import edu.mtisw.kartingrm.repositories.ReserveRepository;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -43,6 +52,9 @@ public class ReserveServiceTest {
 
     @Mock
     private ComplementReserve complementReserve;
+
+    @Mock
+    private JavaMailSender javaMailSender;
 
     private ReserveEntity reserve, reserve1, reserve2;
     private UserEntity user, user2, user3, user4, user5, user6, user7, user8, user9, user10;
@@ -363,8 +375,14 @@ public class ReserveServiceTest {
         // Then
         assertThat(receipt).isNotNull();
         assertThat(receipt.length).isGreaterThan(0);
-        System.out.println("Test recibo de pago :\n Tamaño del recibo: " + receipt.length);
-        System.out.println(receipt);
+
+        // Validar contenido del Excel
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(receipt))) {
+            Sheet sheet = workbook.getSheetAt(0);
+            assertThat(sheet).isNotNull();
+            assertThat(sheet.getRow(0).getCell(0).getStringCellValue()).isEqualTo("Código de Reserva");
+            assertThat((long) sheet.getRow(1).getCell(0).getNumericCellValue()).isEqualTo(reserve.getId());
+        }
     }
 
     @Test
@@ -385,4 +403,55 @@ public class ReserveServiceTest {
 
         System.out.println("PDF generado y guardado en: " + tempFile.toAbsolutePath());
     }
+
+    @Test
+    void whenCreateJavaMailSender_thenCorrect() {
+        // When
+        JavaMailSender mailSender = reserveService.createJavaMailSender("smtp.example.com", 587, "user@example.com", "password");
+
+        // Then
+        assertThat(mailSender).isNotNull();
+        JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
+        assertThat(impl.getHost()).isEqualTo("smtp.example.com");
+        assertThat(impl.getPort()).isEqualTo(587);
+        assertThat(impl.getUsername()).isEqualTo("user@example.com");
+        assertThat(impl.getPassword()).isEqualTo("password");
+        assertThat(impl.getJavaMailProperties().getProperty("mail.smtp.auth")).isEqualTo("true");
+        assertThat(impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable")).isEqualTo("true");
+    }
+
+    @Test
+    void whenSendEmailWithAttachment_thenNoExceptions() throws MessagingException {
+        // Given
+        MimeMessage mimeMessage = new MimeMessage((Session) null);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        // When
+        reserveService.sendEmailWithAttachment(
+                "smtp.example.com", 587, "user@example.com", "password",
+                "yugo@example.com", "Test Subject", "Test Body",
+                "Test Data".getBytes(), "test.pdf"
+        );
+
+        // Then
+        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+    }
+
+    @Test
+    void whenSendPaymentReceipts_thenEmailsSent() throws IOException, DocumentException {
+        // Given
+        reserve.setGroup(Set.of(user, user2));
+        reserve.setTariff(tariff1);
+
+        MimeMessage mimeMessage = new MimeMessage((Session) null);
+        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+
+        // When
+        reserveService.sendPaymentReceipts(reserve);
+
+        // Then
+        verify(javaMailSender, times(2)).send(any(MimeMessage.class));
+    }
+
+
 }

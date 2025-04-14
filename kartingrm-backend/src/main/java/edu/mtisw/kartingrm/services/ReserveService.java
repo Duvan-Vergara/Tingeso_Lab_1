@@ -249,12 +249,31 @@ public class ReserveService {
         document.open();
 
         Sheet sheet = workbook.getSheetAt(0);
-        for (Row row : sheet) {
-            for (Cell cell : row) {
-                document.add(new Paragraph(cell.toString()));
-            }
-            document.add(new Paragraph("\n"));
+
+        // Crear una tabla en el PDF con el número de columnas del Excel
+        int numberOfColumns = sheet.getRow(0).getLastCellNum();
+        com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(numberOfColumns);
+        table.setWidthPercentage(100); // Ajustar al ancho de la página
+
+        // Agregar encabezados de la tabla
+        Row headerRow = sheet.getRow(0);
+        for (Cell cell : headerRow) {
+            table.addCell(new com.itextpdf.text.Phrase(cell.toString()));
         }
+
+        // Agregar datos de las filas
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+            Row row = sheet.getRow(i);
+            if (row != null) {
+                for (int j = 0; j < numberOfColumns; j++) {
+                    Cell cell = row.getCell(j, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
+                    table.addCell(new com.itextpdf.text.Phrase(cell.toString()));
+                }
+            }
+        }
+
+        // Agregar la tabla al documento PDF
+        document.add(table);
         document.close();
         workbook.close();
 
