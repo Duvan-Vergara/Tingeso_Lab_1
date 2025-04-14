@@ -44,7 +44,7 @@ public class ReserveServiceTest {
     @Mock
     private ComplementReserve complementReserve;
 
-    private ReserveEntity reserve, reserve1;
+    private ReserveEntity reserve, reserve1, reserve2;
     private UserEntity user, user2, user3, user4, user5, user6, user7, user8, user9, user10;
     private TariffEntity tariff1, tariff2, tariff3;
 
@@ -90,7 +90,7 @@ public class ReserveServiceTest {
         tariff3 = new TariffEntity(3L, 20, 20, 25000.00, 40, 5.00, 20.00, 23750.00, 30000.00);
 
         reserve1 = new ReserveEntity();
-        reserve1.setId(1L);
+        reserve1.setId(2L);
         reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
         reserve1.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
         reserve1.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
@@ -107,14 +107,15 @@ public class ReserveServiceTest {
         reserve.setTariff(tariff1);
         reserve.setFinalPrice(0.0);
 
-        reserve1 = new ReserveEntity();
-        reserve1.setId(1L);
-        reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve1.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve1.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve1.setGroup(group1);
-        reserve1.setTariff(tariff1);
-        reserve1.setFinalPrice(0.0);
+        reserve2 = new ReserveEntity();
+        reserve2.setId(3L);
+        reserve2.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        reserve2.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve2.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve2.setGroup(group1);
+        reserve2.setTariff(tariff1);
+        reserve2.setFinalPrice(0.0);
+
     }
 
     private boolean isSpecialDay(LocalDate date) {
@@ -362,6 +363,8 @@ public class ReserveServiceTest {
         // Then
         assertThat(receipt).isNotNull();
         assertThat(receipt.length).isGreaterThan(0);
+        System.out.println("Test recibo de pago :\n Tamaño del recibo: " + receipt.length);
+        System.out.println(receipt);
     }
 
     @Test
@@ -375,5 +378,11 @@ public class ReserveServiceTest {
         // Then
         assertThat(pdfData).isNotNull();
         assertThat(pdfData.length).isGreaterThan(0);
+
+        // Guardar el PDF en un archivo temporal para inspección manual
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Comprobante_de_Pago", ".pdf");
+        java.nio.file.Files.write(tempFile, pdfData);
+
+        System.out.println("PDF generado y guardado en: " + tempFile.toAbsolutePath());
     }
 }
