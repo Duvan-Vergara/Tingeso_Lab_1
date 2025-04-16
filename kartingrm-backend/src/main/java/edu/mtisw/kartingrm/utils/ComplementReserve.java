@@ -55,7 +55,6 @@ public class ComplementReserve {
         bestDiscount = Math.max(bestDiscount, calculateGroupSizeDiscount(numberOfPeople));
         // Descuento para clientes frecuentes
         bestDiscount = Math.max(bestDiscount, calculateFrequentCustomerDiscount(userReserves));
-
         return bestDiscount;
     }
 

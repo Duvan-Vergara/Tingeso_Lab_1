@@ -38,14 +38,14 @@ public class TariffServiceTest {
         // Given
         List<TariffEntity> tariffs = new ArrayList<>();
         tariffs.add(tariff);
-        when(tariffRepository.getAllTariffs()).thenReturn(tariffs);
+        when(tariffRepository.findAll()).thenReturn(tariffs);
 
         // When
         List<TariffEntity> result = tariffService.getTariffs();
 
         // Then
         assertThat(result).isEqualTo(tariffs);
-        verify(tariffRepository, times(1)).getAllTariffs();
+        verify(tariffRepository, times(1)).findAll();
     }
 
     @Test

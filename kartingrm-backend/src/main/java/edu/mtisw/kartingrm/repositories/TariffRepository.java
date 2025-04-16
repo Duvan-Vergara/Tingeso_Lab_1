@@ -8,9 +8,6 @@ import java.util.List;
 
 @Repository
 public interface TariffRepository extends JpaRepository<TariffEntity, Long> {
-
-    List<TariffEntity> getAllTariffs();
-
     TariffEntity findByLaps(int laps);
 
     TariffEntity findByMaxMinutes(int maxMinutes);

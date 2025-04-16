@@ -1,26 +1,23 @@
 package edu.mtisw.kartingrm.services;
 
 import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
 import edu.mtisw.kartingrm.entities.ReserveEntity;
 import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.ReserveRepository;
-import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
 import edu.mtisw.kartingrm.utils.ComplementReserve;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,25 +37,28 @@ public class ReserveService {
     ReserveRepository reserveRepository;
 
     @Autowired
-    SpecialDayRepository specialDayRepository;
-
-    @Autowired
     TariffRepository tariffRepository;
 
     @Autowired
+    JavaMailSender javaMailSender;
+
+    @Autowired
     ComplementReserve complementReserve;
+
+
+    @Value("${spring.mail.username}")
+    private String senderEmail;
 
     public List<ReserveEntity> getReserves() { return new ArrayList<>(reserveRepository.findAll()); }
 
     public ReserveEntity saveReserve(ReserveEntity reserve) {
         // Obtener las tarifas disponibles
-        List<TariffEntity> availableTariffs = new ArrayList<>(tariffRepository.getAllTariffs());
+        List<TariffEntity> availableTariffs = tariffRepository.findAll();
 
         // Calcular la tarifa si no está especificada
         if (reserve.getTariff() == null) {
             TariffEntity calculatedTariff = calculateTariffForReserve(reserve.getBegin(), reserve.getFinish(), availableTariffs);
             reserve.setTariff(calculatedTariff);
-
             // Ajustar la hora de finalización según la tarifa calculada
             reserve.setFinish(Date.from(reserve.getBegin().toInstant().plusSeconds(calculatedTariff.getMaxMinutes() * 60)));
         }
@@ -149,7 +149,6 @@ public class ReserveService {
         double basePrice = getTariffForDate(reserve);
 
         for (UserEntity user : reserve.getGroup()) {
-            // Descuento por tamaño de grupo
             List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), month);
 
             double bestDiscount = complementReserve.calculateBestDiscount(reserve, userReserves);
@@ -173,29 +172,39 @@ public class ReserveService {
 
         // Crear encabezados
         Row headerRow = sheet.createRow(0);
-        headerRow.createCell(0).setCellValue("Código de Reserva");
-        headerRow.createCell(1).setCellValue("Fecha y Hora de Reserva");
-        headerRow.createCell(2).setCellValue("Número de Vueltas/Max Tiempo");
-        headerRow.createCell(3).setCellValue("Cantidad de Personas");
-        headerRow.createCell(4).setCellValue("Nombre de la Persona que Reservó");
+        String[] headers = {
+                "Código de Reserva", "Fecha y Hora de Reserva", "Número de Vueltas/Max Tiempo",
+                "Cantidad de Personas", "Nombre de la Persona que Reservó", "", ""
+        };
+        for (int i = 0; i < headers.length; i++) {
+            headerRow.createCell(i).setCellValue(headers[i]);
+        }
 
         // Llenar información de la reserva
         Row infoRow = sheet.createRow(1);
         infoRow.createCell(0).setCellValue(reserve.getId());
-        infoRow.createCell(1).setCellValue(reserve.getDate().toString() + " " + reserve.getBegin().toString());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm");
+        String formattedDateTime = reserve.getDate().toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime()
+                .format(formatter);
+        infoRow.createCell(1).setCellValue(formattedDateTime);
         infoRow.createCell(2).setCellValue(reserve.getTariff().getLaps() + " vueltas / " + reserve.getTariff().getMaxMinutes() + " minutos");
         infoRow.createCell(3).setCellValue(reserve.getGroup().size());
         infoRow.createCell(4).setCellValue(reserve.getGroup().iterator().next().getName());
+        for (int i = 5; i < 7; i++) {
+            infoRow.createCell(i); // Crear celdas vacías
+        }
 
         // Crear encabezados para el detalle de pago
         Row paymentHeaderRow = sheet.createRow(3);
-        paymentHeaderRow.createCell(0).setCellValue("Nombre de Cliente");
-        paymentHeaderRow.createCell(1).setCellValue("Tarifa Base");
-        paymentHeaderRow.createCell(2).setCellValue("Descuento por Tamaño de Grupo");
-        paymentHeaderRow.createCell(3).setCellValue("Descuento por Cliente Frecuente/Promociones");
-        paymentHeaderRow.createCell(4).setCellValue("Monto Final");
-        paymentHeaderRow.createCell(5).setCellValue("IVA");
-        paymentHeaderRow.createCell(6).setCellValue("Monto Total");
+        String[] paymentHeaders = {
+                "Nombre de Cliente", "Tarifa Base", "Descuento (%)",
+                "Descuento especial (%)", "Monto Final", "IVA", "Monto Total"
+        };
+        for (int i = 0; i < paymentHeaders.length; i++) {
+            paymentHeaderRow.createCell(i).setCellValue(paymentHeaders[i]);
+        }
 
         // Llenar detalle de pago
         int rowNum = 4;
@@ -214,8 +223,8 @@ public class ReserveService {
 
             row.createCell(0).setCellValue(user.getName());
             row.createCell(1).setCellValue(basePrice);
-            row.createCell(2).setCellValue(groupDiscount);
-            row.createCell(3).setCellValue(frequentDiscount);
+            row.createCell(2).setCellValue(groupDiscount * 100);
+            row.createCell(3).setCellValue(frequentDiscount * 100);
             row.createCell(4).setCellValue(finalAmount);
             row.createCell(5).setCellValue(ivaAmount);
             row.createCell(6).setCellValue(totalWithIva);
@@ -224,18 +233,33 @@ public class ReserveService {
             iva += ivaAmount;
         }
 
-        // Calcular el monto total e IVA
-        Row totalRow = sheet.createRow(rowNum++);
-        totalRow.createCell(5).setCellValue("IVA Total:");
-        totalRow.createCell(6).setCellValue(iva);
-        Row finalRow = sheet.createRow(rowNum);
-        finalRow.createCell(5).setCellValue("Monto Total:");
-        finalRow.createCell(6).setCellValue(totalAmount + iva);
+        // Agregar fila para el precio total de la reserva
+        Row totalReserveRow = sheet.createRow(rowNum);
+        for (int i = 0; i < 4; i++) {
+            totalReserveRow.createCell(i); // Crear celdas vacías
+        }
+        totalReserveRow.createCell(4).setCellValue("Totales:");
+        totalReserveRow.createCell(5).setCellValue(iva);
+        totalReserveRow.createCell(6).setCellValue(totalAmount + iva);
 
-        // Escribir el archivo Excel a un ByteArrayOutputStream
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        workbook.write(bos);
+        // Crear un archivo temporal para guardar el Excel
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Comprobante_de_Pago", ".xlsx");
+        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
+            workbook.write(fos);
+        }
         workbook.close();
+
+        System.out.println("Archivo Excel guardado temporalmente en: " + tempFile.toAbsolutePath());
+
+        // Escribir el archivo Excel a un ByteArrayOutputStream para retornarlo
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try (FileInputStream fis = new FileInputStream(tempFile.toFile())) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                bos.write(buffer, 0, bytesRead);
+            }
+        }
         return bos.toByteArray();
     }
 
@@ -252,8 +276,14 @@ public class ReserveService {
 
         // Crear una tabla en el PDF con el número de columnas del Excel
         int numberOfColumns = sheet.getRow(0).getLastCellNum();
+        System.out.println("Numero de columnas: " + numberOfColumns);
         com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(numberOfColumns);
         table.setWidthPercentage(100); // Ajustar al ancho de la página
+
+        // Establecer anchos relativos para las columnas
+        float[] columnWidths = new float[numberOfColumns];
+        Arrays.fill(columnWidths, 1f); // Asignar ancho uniforme a todas las columnas
+        table.setWidths(columnWidths);
 
         // Agregar encabezados de la tabla
         Row headerRow = sheet.getRow(0);
@@ -262,12 +292,20 @@ public class ReserveService {
         }
 
         // Agregar datos de las filas
+        System.out.println("GetLastRowNum: " + sheet.getLastRowNum());
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row != null) {
-                for (int j = 0; j < numberOfColumns; j++) {
+                // Determinar el número de columnas dinámicamente para cada fila
+                int dynamicNumberOfColumns = row.getLastCellNum();
+                for (int j = 0; j < dynamicNumberOfColumns; j++) {
                     Cell cell = row.getCell(j, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK);
-                    table.addCell(new com.itextpdf.text.Phrase(cell.toString()));
+                    // Formatear valores numéricos para mayor claridad
+                    if (cell.getCellType() == CellType.NUMERIC) {
+                        table.addCell(new com.itextpdf.text.Phrase(String.format("%.2f", cell.getNumericCellValue())));
+                    } else {
+                        table.addCell(new com.itextpdf.text.Phrase(cell.toString()));
+                    }
                 }
             }
         }
@@ -280,34 +318,29 @@ public class ReserveService {
         return bos.toByteArray();
     }
 
-    public JavaMailSender createJavaMailSender(String host, int port, String username, String password) {
-        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
-        mailSender.setHost(host);
-        mailSender.setPort(port);
-        mailSender.setUsername(username);
-        mailSender.setPassword(password);
-
-        Properties props = mailSender.getJavaMailProperties();
-        props.put("mail.transport.protocol", "smtp");
-        props.put("mail.smtp.auth", "true");
-        props.put("mail.smtp.starttls.enable", "true");
-        props.put("mail.debug", "true");
-
-        return mailSender;
-    }
-
-    public void sendEmailWithAttachment(String host, int port, String username, String password, String to, String subject, String text, byte[] attachmentData, String attachmentName) {
+    public void sendEmailWithAttachment(String to, String subject, String text, byte[] attachmentData, String attachmentName) {
+        MimeMessage message = javaMailSender.createMimeMessage();
         try {
-            JavaMailSender mailSender = createJavaMailSender(host, port, username, password);
-            MimeMessage message = mailSender.createMimeMessage();
+            message.setSubject(subject);
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
             helper.setTo(to);
-            helper.setSubject(subject);
             helper.setText(text);
             helper.addAttachment(attachmentName, new ByteArrayDataSource(attachmentData, "application/pdf"));
+            javaMailSender.send(message);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        }
+    }
 
-            mailSender.send(message);
+    public void sendSimpleEmail(String to, String subject, String text) {
+        MimeMessage message = javaMailSender.createMimeMessage();
+        try {
+            message.setSubject(subject);
+            MimeMessageHelper helper = new MimeMessageHelper(message, true); // false indica que no hay adjuntos
+            helper.setTo(to);
+            helper.setText(text);
+            helper.setFrom(senderEmail);
+            javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();
         }
@@ -319,10 +352,16 @@ public class ReserveService {
 
         for (UserEntity user : reserve.getGroup()) {
             sendEmailWithAttachment(
-                    "smtp.example.com", 587, "your_email@example.com", "your_password",
-                    user.getEmail(), "Comprobante de Pago", "Adjunto encontrará el comprobante de pago de su reserva.",
-                    pdfData, "Comprobante_de_Pago.pdf"
+                    user.getEmail(),
+                    "Comprobante de Pago",
+                    "Adjunto encontrará el comprobante de pago de su reserva.",
+                    pdfData,
+                    "Comprobante_de_Pago.pdf"
             );
         }
+    }
+
+    public JavaMailSender createJavaMailSender() {
+        return javaMailSender;
     }
 }

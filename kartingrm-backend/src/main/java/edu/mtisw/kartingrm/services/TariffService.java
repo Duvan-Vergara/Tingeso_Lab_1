@@ -14,7 +14,7 @@ public class TariffService {
     TariffRepository tariffRepository;
 
     public List<TariffEntity> getTariffs(){
-        return new ArrayList<>(tariffRepository.getAllTariffs());
+        return new ArrayList<>(tariffRepository.findAll());
     }
 
     public TariffEntity saveTariff(TariffEntity tariff) {

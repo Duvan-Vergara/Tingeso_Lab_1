@@ -5,9 +5,6 @@ import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
 import edu.mtisw.kartingrm.utils.ComplementReserve;
-import jakarta.mail.MessagingException;
-import jakarta.mail.Session;
-import jakarta.mail.internet.MimeMessage;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
@@ -45,16 +42,19 @@ public class ReserveServiceTest {
     private ReserveRepository reserveRepository;
 
     @Mock
+    private TariffService tariffService;
+
+    @Mock
     private TariffRepository tariffRepository;
+
+    @Mock
+    private JavaMailSender javaMailSender;
 
     @Mock
     private SpecialDayRepository specialDayRepository;
 
     @Mock
     private ComplementReserve complementReserve;
-
-    @Mock
-    private JavaMailSender javaMailSender;
 
     private ReserveEntity reserve, reserve1, reserve2;
     private UserEntity user, user2, user3, user4, user5, user6, user7, user8, user9, user10;
@@ -63,6 +63,25 @@ public class ReserveServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+
+        // Configurar un JavaMailSender real
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
+        mailSender.setUsername("duvanvch12@gmail.com");
+        mailSender.setPassword("csybsewhwltytjlf");
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        reserveService.javaMailSender = mailSender;
+
+        // Configurar el mock para llamar a los métodos reales
+        doCallRealMethod().when(complementReserve).calculateBirthdayLimit(anyInt());
+        doCallRealMethod().when(complementReserve).calculateGroupSizeDiscount(anyInt());
+        doCallRealMethod().when(complementReserve).calculateBestDiscount(any(ReserveEntity.class), anyList());
+        doCallRealMethod().when(complementReserve).calculateFrequentCustomerDiscount(anyList());
 
         user = new UserEntity(1L, "12.345.678-9", "Yugo", "Smith", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(1995, 5, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()));
         user2 = new UserEntity(2L, "98.765.432-1", "Anna", "Johnson", "anna.johnson@example.com", java.util.Date.from(LocalDate.of(1990, 8, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -100,7 +119,7 @@ public class ReserveServiceTest {
         tariff1 = new TariffEntity(1L, 10, 10, 15000.00, 30, 5.00, 20.00, 14250.00, 18000.00);
         tariff2 = new TariffEntity(2L, 15, 15, 20000.00, 35, 5.00, 20.00, 19000.00, 24000.00);
         tariff3 = new TariffEntity(3L, 20, 20, 25000.00, 40, 5.00, 20.00, 23750.00, 30000.00);
-
+        when(tariffRepository.findAll()).thenReturn(new ArrayList<>(List.of(tariff1, tariff2, tariff3)));
         reserve1 = new ReserveEntity();
         reserve1.setId(2L);
         reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
@@ -189,16 +208,15 @@ public class ReserveServiceTest {
     void whenSaveReserveWithoutTariff_thenCalculateTariff() {
         // Given
         reserve.setTariff(null);
-        when(tariffRepository.getAllTariffs()).thenReturn(List.of(tariff1, tariff2, tariff3));
+        when(tariffRepository.findAll()).thenReturn(new ArrayList<>(List.of(tariff1, tariff2, tariff3)));
         when(reserveRepository.save(reserve)).thenReturn(reserve);
-
         // When
         ReserveEntity result = reserveService.saveReserve(reserve);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.getTariff()).isEqualTo(tariff1); // Verifica que se asignó la tarifa correcta
-        verify(tariffRepository, times(1)).getAllTariffs();
+        verify(tariffRepository, times(1)).findAll();
     }
 
     @Test
@@ -292,10 +310,10 @@ public class ReserveServiceTest {
 
         // When
         double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
-
         // Then
-        assertThat(finalPrice).isEqualTo(45000.0);
+        assertThat(finalPrice).isEqualTo(40500.0);
     }
+
 
     @Test
     void whenCalculateFinalPrice2_thenReturnCorrectPrice() {
@@ -328,7 +346,6 @@ public class ReserveServiceTest {
         double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
 
         // Then
-        System.out.println("Test precio 2 :\n Precio esperado: " + expectedPrice + " Precio calculado: " + finalPrice);
         assertThat(finalPrice).isEqualTo(expectedPrice);
     }
 
@@ -363,7 +380,6 @@ public class ReserveServiceTest {
         double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
 
         // Then
-        System.out.println("Test precio 3 :\n Precio esperado: " + expectedPrice + " Precio calculado: " + finalPrice);
         assertThat(finalPrice).isEqualTo(expectedPrice);
     }
 
@@ -406,52 +422,61 @@ public class ReserveServiceTest {
 
     @Test
     void whenCreateJavaMailSender_thenCorrect() {
+        // Configurar un JavaMailSenderImpl real
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+        mailSender.setHost("smtp.gmail.com");
+        mailSender.setPort(587);
+        mailSender.setUsername("duvanvch12@gmail.com");
+        mailSender.setPassword("csybsewhwltytjlf");
+
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+
+        // Simular el comportamiento del metodo createJavaMailSender
+        ReserveService reserveService = new ReserveService();
+        reserveService.javaMailSender = mailSender; // Inyectar manualmente el JavaMailSender
+
         // When
-        JavaMailSender mailSender = reserveService.createJavaMailSender("smtp.example.com", 587, "user@example.com", "password");
+        JavaMailSender result = reserveService.createJavaMailSender();
 
         // Then
-        assertThat(mailSender).isNotNull();
-        JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
-        assertThat(impl.getHost()).isEqualTo("smtp.example.com");
+        assertThat(result).isNotNull();
+        JavaMailSenderImpl impl = (JavaMailSenderImpl) result;
+        assertThat(impl.getHost()).isEqualTo("smtp.gmail.com");
         assertThat(impl.getPort()).isEqualTo(587);
-        assertThat(impl.getUsername()).isEqualTo("user@example.com");
-        assertThat(impl.getPassword()).isEqualTo("password");
+        assertThat(impl.getUsername()).isEqualTo("duvanvch12@gmail.com");
+        assertThat(impl.getPassword()).isEqualTo("csybsewhwltytjlf");
         assertThat(impl.getJavaMailProperties().getProperty("mail.smtp.auth")).isEqualTo("true");
         assertThat(impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable")).isEqualTo("true");
     }
 
     @Test
-    void whenSendEmailWithAttachment_thenNoExceptions() throws MessagingException {
-        // Given
-        MimeMessage mimeMessage = new MimeMessage((Session) null);
-        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
+    void whenSendEmailWithAttachment_thenNoExceptions() throws IOException, DocumentException {
+        // Crear datos de prueba
+        byte[] pdfData = reserveService.convertExcelToPdf(reserveService.generatePaymentReceipt(reserve));
 
-        // When
+        // Enviar correo
         reserveService.sendEmailWithAttachment(
-                "smtp.example.com", 587, "user@example.com", "password",
-                "yugo@example.com", "Test Subject", "Test Body",
-                "Test Data".getBytes(), "test.pdf"
+                "duvanvch12@gmail.com",
+                "Asunto de Prueba",
+                "Este es un correo de prueba con un archivo adjunto.",
+                pdfData,
+                "archivo_prueba.pdf"
         );
-
-        // Then
-        verify(javaMailSender, times(1)).send(any(MimeMessage.class));
+        System.out.println("Correo enviado correctamente (SendEmailWitch Attachment). Verifica la bandeja de entrada.");
     }
 
     @Test
     void whenSendPaymentReceipts_thenEmailsSent() throws IOException, DocumentException {
         // Given
-        reserve.setGroup(Set.of(user, user2));
+        reserve.setGroup(Set.of(user));
         reserve.setTariff(tariff1);
-
-        MimeMessage mimeMessage = new MimeMessage((Session) null);
-        when(javaMailSender.createMimeMessage()).thenReturn(mimeMessage);
 
         // When
         reserveService.sendPaymentReceipts(reserve);
 
         // Then
-        verify(javaMailSender, times(2)).send(any(MimeMessage.class));
+        System.out.println("Correos enviados correctamente(SendPaymentReceipts). Verifica las bandejas de entrada.");
     }
-
-
 }

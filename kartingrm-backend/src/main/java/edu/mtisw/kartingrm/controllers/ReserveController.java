@@ -70,4 +70,17 @@ public class ReserveController {
         return ResponseEntity.ok(reserves);
     }
 
+    @PostMapping("/send-email")
+    public ResponseEntity<String> sendSimpleEmail(
+            @RequestParam String to,
+            @RequestParam String subject,
+            @RequestParam String text) {
+        try {
+            reserveService.sendSimpleEmail(to, subject, text);
+            return ResponseEntity.ok("Correo enviado correctamente a: " + to);
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error al enviar el correo: " + e.getMessage());
+        }
+    }
+
 }
