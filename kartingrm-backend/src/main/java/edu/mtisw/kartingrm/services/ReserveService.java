@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
@@ -128,29 +129,32 @@ public class ReserveService {
     }
 
     public TariffEntity calculateTariffForReserve(Date startTime, Date endTime, List<TariffEntity> availableTariffs) {
-        // Ordenar las tarifas por duración máxima
-        availableTariffs.sort(Comparator.comparingInt(TariffEntity::getTotalDuration));
+        // Validar que las tarifas disponibles no estén vacías
+        if (availableTariffs == null || availableTariffs.isEmpty()) {
+            throw new IllegalArgumentException("No hay tarifas disponibles para calcular.");
+        }
 
         // Calcular la duración en minutos
         long durationInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
 
-        // Si la duración es menor que la tarifa más corta, asignar la tarifa mínima
-        if (durationInMinutes <= availableTariffs.get(0).getTotalDuration()) {
-            return availableTariffs.get(0);
-        }
+        // Inicializar las tarifas mínima y máxima
+        TariffEntity shortestTariff = null;
+        TariffEntity longestTariff = null;
 
-        // Si la duración es mayor que la tarifa más larga, asignar la tarifa máxima
-        if (durationInMinutes > availableTariffs.get(availableTariffs.size() - 1).getTotalDuration()) {
-            return availableTariffs.get(availableTariffs.size() - 1);
-        }
-        // Buscar la tarifa adecuada redondeando hacia arriba
+        // Buscar la tarifa adecuada en una sola pasada
         for (TariffEntity tariff : availableTariffs) {
+            if (shortestTariff == null || tariff.getTotalDuration() < shortestTariff.getTotalDuration()) {
+                shortestTariff = tariff;
+            }
+            if (longestTariff == null || tariff.getTotalDuration() > longestTariff.getTotalDuration()) {
+                longestTariff = tariff;
+            }
             if (durationInMinutes <= tariff.getTotalDuration()) {
-                return tariff;
+                return tariff; // Retornar la primera tarifa adecuada
             }
         }
-        // Si no se encuentra una tarifa adecuada (caso improbable), lanzar excepción
-        throw new IllegalArgumentException("No se encontró una tarifa adecuada para la duración especificada.");
+        // Si la duración es mayor que la tarifa más larga, retornar la tarifa máxima
+        return longestTariff;
     }
 
     public double calculateFinalPrice(ReserveEntity reserve, int month) {
@@ -357,5 +361,261 @@ public class ReserveService {
 
     public JavaMailSender createJavaMailSender() {
         return javaMailSender;
+    }
+
+    /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+    private List<YearMonth> getMonthsBetween(LocalDate startDate, LocalDate endDate) {
+        List<YearMonth> months = new ArrayList<>();
+        YearMonth start = YearMonth.from(startDate);
+        YearMonth end = YearMonth.from(endDate);
+
+        while (!start.isAfter(end)) {
+            months.add(start);
+            start = start.plusMonths(1);
+        }
+        return months;
+    }
+
+    private String formatMonth(YearMonth month) {
+        return month.format(DateTimeFormatter.ofPattern("MMMM", new Locale("es", "ES"))).toUpperCase();
+    }
+
+    private double calculateIncome(List<ReserveEntity> reserves, TariffEntity tariff, YearMonth month) {
+        return reserves.stream()
+                .filter(r -> {
+                    // Convertir java.sql.Date a LocalDate directamente
+                    LocalDate reserveDate = ((java.sql.Date) r.getDate()).toLocalDate();
+                    YearMonth reserveMonth = YearMonth.from(reserveDate);
+                    return reserveMonth.equals(month) &&
+                            tariff.getId().equals(r.getTariff().getId());
+                })
+                .mapToDouble(ReserveEntity::getFinalPrice)
+                .sum();
+    }
+
+    private double calculateGroupSizeIncome(List<ReserveEntity> reserves, int minSize, int maxSize, YearMonth month) {
+        return reserves.stream()
+                .filter(r -> {
+                    // Convertir java.sql.Date a LocalDate directamente
+                    LocalDate reserveDate = ((java.sql.Date) r.getDate()).toLocalDate();
+                    YearMonth reserveMonth = YearMonth.from(reserveDate);
+                    int groupSize = r.getGroup().size();
+                    return reserveMonth.equals(month) &&
+                            groupSize >= minSize && groupSize <= maxSize;
+                })
+                .mapToDouble(ReserveEntity::getFinalPrice)
+                .sum();
+    }
+
+    private CellStyle createHeaderStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        Font font = workbook.createFont();
+        font.setBold(true);
+        style.setFont(font);
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setFillForegroundColor(IndexedColors.LIGHT_BLUE.getIndex());
+        style.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        return style;
+    }
+
+    private CellStyle createMoneyStyle(Workbook workbook) {
+        CellStyle style = workbook.createCellStyle();
+        DataFormat format = workbook.createDataFormat();
+        style.setDataFormat(format.getFormat("#,##0"));
+        style.setAlignment(HorizontalAlignment.RIGHT);
+        return style;
+    }
+
+
+    public byte[] generateTariffReport(LocalDate startDate, LocalDate endDate) throws IOException {
+
+        // Agregar esta validación al inicio del metodo
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha fin.");
+        }
+
+        List<TariffEntity> tariffs = tariffRepository.findAll();
+        if (tariffs.isEmpty()) {
+            throw new IllegalArgumentException("No existen tarifas registradas");
+        }
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Reporte por Tarifas");
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle moneyStyle = createMoneyStyle(workbook);
+
+            // Crear encabezados
+            Row headerRow = sheet.createRow(0);
+            Cell headerCell = headerRow.createCell(0);
+            headerCell.setCellValue("Número de vueltas o tiempo máximo permitido");
+            headerCell.setCellStyle(headerStyle);
+
+            // Obtener los meses entre las fechas
+            List<YearMonth> months = getMonthsBetween(startDate, endDate);
+
+            // Crear encabezados de meses
+            for (int i = 0; i < months.size(); i++) {
+                Cell monthCell = headerRow.createCell(i + 1);
+                monthCell.setCellValue(formatMonth(months.get(i)));
+                monthCell.setCellStyle(headerStyle);
+            }
+
+            // Columna de total
+            Cell totalHeaderCell = headerRow.createCell(months.size() + 1);
+            totalHeaderCell.setCellValue("TOTAL");
+            totalHeaderCell.setCellStyle(headerStyle);
+
+            // Obtener todas las reservas entre las fechas
+            List<ReserveEntity> allReserves = reserveRepository.getReserveByDate_DateBetween(
+                    startDate, endDate.plusDays(1));
+
+            // Procesar datos para cada tarifa
+            int rowIndex = 1;
+            double[] columnTotals = new double[months.size() + 1]; // +1 para el total general
+
+            for (TariffEntity tariff : tariffs) {
+                Row dataRow = sheet.createRow(rowIndex++);
+                dataRow.createCell(0).setCellValue(
+                        tariff.getLaps() + " vueltas o máx " + tariff.getMaxMinutes() + " min");
+
+                double rowTotal = 0;
+
+                // Calcular ingresos por mes para esta tarifa
+                for (int i = 0; i < months.size(); i++) {
+                    YearMonth month = months.get(i);
+                    double monthlyIncome = calculateIncome(allReserves, tariff, month);
+
+                    Cell valueCell = dataRow.createCell(i + 1);
+                    valueCell.setCellValue(monthlyIncome);
+                    valueCell.setCellStyle(moneyStyle);
+
+                    rowTotal += monthlyIncome;
+                    columnTotals[i] += monthlyIncome;
+                }
+
+                // Total por tarifa
+                Cell rowTotalCell = dataRow.createCell(months.size() + 1);
+                rowTotalCell.setCellValue(rowTotal);
+                rowTotalCell.setCellStyle(moneyStyle);
+                columnTotals[months.size()] += rowTotal;
+            }
+
+            // Fila de totales
+            Row totalRow = sheet.createRow(rowIndex);
+            Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("TOTAL");
+            totalLabelCell.setCellStyle(headerStyle);
+
+            for (int i = 0; i <= months.size(); i++) {
+                Cell totalCell = totalRow.createCell(i + 1);
+                totalCell.setCellValue(columnTotals[i]);
+                totalCell.setCellStyle(moneyStyle);
+            }
+
+            // Ajustar anchos de columna
+            for (int i = 0; i <= months.size() + 1; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            workbook.write(bos);
+            return bos.toByteArray();
+        }
+    }
+
+    public byte[] generateGroupSizeReport(LocalDate startDate, LocalDate endDate) throws IOException {
+        // Definir las categorías de tamaño de grupo
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha fin.");
+        }
+
+        int[][] groupSizeCategories = {{1, 2}, {3, 5}, {6, 10}, {11, 15}};
+        String[] categoryLabels = {"1-2 personas", "3-5 personas", "6-10 personas", "11-15 personas"};
+
+        try (Workbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("Reporte por Tamaño de Grupo");
+            CellStyle headerStyle = createHeaderStyle(workbook);
+            CellStyle moneyStyle = createMoneyStyle(workbook);
+
+            // Crear encabezados
+            Row headerRow = sheet.createRow(0);
+            Cell headerCell = headerRow.createCell(0);
+            headerCell.setCellValue("Número de personas");
+            headerCell.setCellStyle(headerStyle);
+
+            // Obtener los meses entre las fechas
+            List<YearMonth> months = getMonthsBetween(startDate, endDate);
+
+            // Crear encabezados de meses
+            for (int i = 0; i < months.size(); i++) {
+                Cell monthCell = headerRow.createCell(i + 1);
+                monthCell.setCellValue(formatMonth(months.get(i)));
+                monthCell.setCellStyle(headerStyle);
+            }
+
+            // Columna de total
+            Cell totalHeaderCell = headerRow.createCell(months.size() + 1);
+            totalHeaderCell.setCellValue("TOTAL");
+            totalHeaderCell.setCellStyle(headerStyle);
+
+            // Obtener todas las reservas entre las fechas
+            List<ReserveEntity> allReserves = reserveRepository.getReserveByDate_DateBetween(
+                    startDate, endDate.plusDays(1));
+
+            // Procesar datos para cada categoría de tamaño
+            int rowIndex = 1;
+            double[] columnTotals = new double[months.size() + 1]; // +1 para el total general
+
+            for (int i = 0; i < groupSizeCategories.length; i++) {
+                int[] range = groupSizeCategories[i];
+                String label = categoryLabels[i];
+
+                Row dataRow = sheet.createRow(rowIndex++);
+                dataRow.createCell(0).setCellValue(label);
+
+                double rowTotal = 0;
+
+                // Calcular ingresos por mes para esta categoría de tamaño
+                for (int j = 0; j < months.size(); j++) {
+                    YearMonth month = months.get(j);
+                    double monthlyIncome = calculateGroupSizeIncome(allReserves, range[0], range[1], month);
+
+                    Cell valueCell = dataRow.createCell(j + 1);
+                    valueCell.setCellValue(monthlyIncome);
+                    valueCell.setCellStyle(moneyStyle);
+
+                    rowTotal += monthlyIncome;
+                    columnTotals[j] += monthlyIncome;
+                }
+
+                // Total por categoría
+                Cell rowTotalCell = dataRow.createCell(months.size() + 1);
+                rowTotalCell.setCellValue(rowTotal);
+                rowTotalCell.setCellStyle(moneyStyle);
+                columnTotals[months.size()] += rowTotal;
+            }
+
+            // Fila de totales
+            Row totalRow = sheet.createRow(rowIndex);
+            Cell totalLabelCell = totalRow.createCell(0);
+            totalLabelCell.setCellValue("TOTAL");
+            totalLabelCell.setCellStyle(headerStyle);
+
+            for (int i = 0; i <= months.size(); i++) {
+                Cell totalCell = totalRow.createCell(i + 1);
+                totalCell.setCellValue(columnTotals[i]);
+                totalCell.setCellStyle(moneyStyle);
+            }
+
+            // Ajustar anchos de columna
+            for (int i = 0; i <= months.size() + 1; i++) {
+                sheet.autoSizeColumn(i);
+            }
+
+            ByteArrayOutputStream bos = new ByteArrayOutputStream();
+            workbook.write(bos);
+            return bos.toByteArray();
+        }
     }
 }
