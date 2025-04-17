@@ -78,18 +78,28 @@ public class ReserveService {
 
     public List<ReserveEntity> getReserveByMonth(int month) { return reserveRepository.getReserveByDate_Month(month); }
 
-    public List<List<ReserveEntity>> getReserveByWeek(int year, int month, int day) {
+    public List<List<String>> getReserveByWeek(int year, int month, int day) {
         LocalDate date = LocalDate.of(year, month, day);
-        LocalDate startDate = date.with(TemporalAdjusters.previousOrSame(date.getDayOfWeek().getValue() == 7 ? date.getDayOfWeek() : date.getDayOfWeek().minus(1)));
+        LocalDate startDate = date.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
         LocalDate endDate = startDate.plusDays(6);
 
         // Obtener reservas entre las fechas
         List<ReserveEntity> reserves = reserveRepository.getReserveByDate_DateBetween(startDate, endDate);
 
-        // Agrupar reservas por día de la semana
+        DateTimeFormatter timeFormatter = DateTimeFormatter.ofPattern("H:mm"); // Formato sin ceros a la izquierda
+
+        // Agrupar reservas por día de la semana y formatear la información
         return IntStream.range(0, 7)
                 .mapToObj(i -> startDate.plusDays(i))
-                .map(d -> reserves.stream().filter(r -> r.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().equals(d)).collect(Collectors.toList()))
+                .map(d -> reserves.stream()
+                        .filter(r -> r.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().equals(d))
+                        .map(r -> {
+                            UserEntity user = r.getGroup().iterator().next(); // Obtener el primer usuario
+                            String startTime = r.getBegin().toInstant().atZone(ZoneId.systemDefault()).toLocalTime().format(timeFormatter);
+                            String endTime = r.getFinish().toInstant().atZone(ZoneId.systemDefault()).toLocalTime().format(timeFormatter);
+                            return user.getName() + " (" + startTime + " - " + endTime + ")";
+                        })
+                        .collect(Collectors.toList()))
                 .collect(Collectors.toList());
     }
 
@@ -276,7 +286,6 @@ public class ReserveService {
 
         // Crear una tabla en el PDF con el número de columnas del Excel
         int numberOfColumns = sheet.getRow(0).getLastCellNum();
-        System.out.println("Numero de columnas: " + numberOfColumns);
         com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(numberOfColumns);
         table.setWidthPercentage(100); // Ajustar al ancho de la página
 
@@ -292,7 +301,6 @@ public class ReserveService {
         }
 
         // Agregar datos de las filas
-        System.out.println("GetLastRowNum: " + sheet.getLastRowNum());
         for (int i = 1; i <= sheet.getLastRowNum(); i++) {
             Row row = sheet.getRow(i);
             if (row != null) {
@@ -326,20 +334,6 @@ public class ReserveService {
             helper.setTo(to);
             helper.setText(text);
             helper.addAttachment(attachmentName, new ByteArrayDataSource(attachmentData, "application/pdf"));
-            javaMailSender.send(message);
-        } catch (MessagingException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendSimpleEmail(String to, String subject, String text) {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        try {
-            message.setSubject(subject);
-            MimeMessageHelper helper = new MimeMessageHelper(message, true); // false indica que no hay adjuntos
-            helper.setTo(to);
-            helper.setText(text);
-            helper.setFrom(senderEmail);
             javaMailSender.send(message);
         } catch (MessagingException e) {
             e.printStackTrace();

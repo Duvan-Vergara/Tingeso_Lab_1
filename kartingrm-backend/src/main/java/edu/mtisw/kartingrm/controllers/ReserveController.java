@@ -65,22 +65,10 @@ public class ReserveController {
     }
 
     @GetMapping("/week/{year}/{month}/{week}")
-    public ResponseEntity<List<List<ReserveEntity>>> listReservesByWeek(@PathVariable("year") int year, @PathVariable("month") int month, @PathVariable("week") int week) {
-        List<List<ReserveEntity>> reserves = reserveService.getReserveByWeek(year, month, week);
+    public ResponseEntity<List<List<String>>> listReservesByWeek(@PathVariable("year") int year, @PathVariable("month") int month, @PathVariable("week") int week) {
+        //List<List<ReserveEntity>> reserves = reserveService.getReserveByWeek(year, month, week);
+        List<List<String>> reserves = reserveService.getReserveByWeek(year, month, week);
         return ResponseEntity.ok(reserves);
-    }
-
-    @PostMapping("/send-email")
-    public ResponseEntity<String> sendSimpleEmail(
-            @RequestParam String to,
-            @RequestParam String subject,
-            @RequestParam String text) {
-        try {
-            reserveService.sendSimpleEmail(to, subject, text);
-            return ResponseEntity.ok("Correo enviado correctamente a: " + to);
-        } catch (Exception e) {
-            return ResponseEntity.status(500).body("Error al enviar el correo: " + e.getMessage());
-        }
     }
 
 }
