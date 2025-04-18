@@ -2,6 +2,7 @@ package edu.mtisw.kartingrm.controllers;
 
 import edu.mtisw.kartingrm.entities.ReserveEntity;
 import edu.mtisw.kartingrm.services.ReserveService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -15,6 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/reserves")
+@Tag(name = "Reservas", description = "Controlador para gestionar reservas")
 @CrossOrigin("*")
 public class ReserveController {
 
@@ -85,6 +87,12 @@ public class ReserveController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Error al enviar el comprobante de pago: " + e.getMessage());
         }
+    }
+
+    @PostMapping("/calculate-price")
+    public ResponseEntity<Double> calculatePrice(@RequestBody ReserveEntity reserve) {
+        double finalPrice = reserveService.calculateFinalPrice(reserve, LocalDate.now().getMonthValue());
+        return ResponseEntity.ok(finalPrice);
     }
 
     @GetMapping("/report/tariff")

@@ -1,4 +1,4 @@
 FROM openjdk:17
-ARG JAR_FILE=target/payroll-backend.jar
-COPY ${JAR_FILE} payroll-backend.jar
-ENTRYPOINT ["java","-jar","/payroll-backend.jar"]
+ARG JAR_FILE=target/kartingrm-backend.jar
+COPY ${JAR_FILE} kartingrm-backend.jar
+ENTRYPOINT ["java","-jar","/kartingrm-backend.jar"]
