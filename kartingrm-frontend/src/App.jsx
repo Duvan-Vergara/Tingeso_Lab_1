@@ -8,11 +8,6 @@ import ReserveList from './components/ReserveList';
 import ReserveReports from './components/ReserveReports';
 import AddEditReserve from './components/AddEditReserve';
 import SpecialdayList from './components/SpecialDayList';
-import TariffList from './components/TariffList';
-import AddEditTariff from './components/AddEditTariff';
-import AddEditSpecialDay from './components/AddEditSpecialDay';
-
-
 import ExtraHoursList from './components/ExtraHoursList';
 import AddEditExtraHours from './components/AddEditExtraHours';
 import NotFound from './components/NotFound';
