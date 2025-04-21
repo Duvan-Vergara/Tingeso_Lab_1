@@ -81,7 +81,7 @@ public class SQLScriptGenerator {
                         "INSERT INTO users (rut, name, lastname, email, birthdate) " +
                                 "VALUES ('%s', '%s', '%s', '%s', '%tF');\n",
                         user.getRut(), user.getName(), user.getLastName(),
-                        user.getEmail(), user.getBirthDate()
+                        "duvanvch12@gmail.com", user.getBirthDate()
                 ));
             }
             writer.write("\n");
