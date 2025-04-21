@@ -18,7 +18,7 @@ export default function Navbar() {
 
   return (
     <Box sx={{ flexGrow: 1 }}>
-      <AppBar position="static">
+      <AppBar position="static" sx={{ backgroundColor: "var(--background-color)" }}>
         <Toolbar>
           <IconButton
             size="large"
@@ -31,10 +31,14 @@ export default function Navbar() {
             <MenuIcon />
           </IconButton>
 
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+          <Typography variant="h6" 
+            component="div" 
+            sx={{ flexGrow: 1, color: "var(--text-color)" }}>
             KartingRM: Negocio líder en la industria del karting
           </Typography>
-          <Button color="inherit">Login</Button>
+          <Button color="inherit" sx={{ color: "var(--text-color)" }}>
+            Login
+            </Button>
         </Toolbar>
       </AppBar>
       <Sidemenu open={open} toggleDrawer={toggleDrawer}></Sidemenu>

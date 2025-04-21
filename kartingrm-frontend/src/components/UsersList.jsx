@@ -88,16 +88,16 @@ const UserList = () => {
             <TableCell align="left" sx={{ fontWeight: "bold" }}>
               Nombre
             </TableCell>
-            <TableCell align="right" sx={{ fontWeight: "bold" }}>
-              Sueldo
-            </TableCell>
-            <TableCell align="right" sx={{ fontWeight: "bold" }}>
-              Nro.Hijos
-            </TableCell>
-            <TableCell align="right" sx={{ fontWeight: "bold" }}>
-              Categoria
+            <TableCell align="left" sx={{ fontWeight: "bold" }}>
+              Apellido
             </TableCell>
             <TableCell align="left" sx={{ fontWeight: "bold" }}>
+              Email
+            </TableCell>
+            <TableCell align="left" sx={{ fontWeight: "bold" }}>
+              Fecha de Nacimiento
+            </TableCell>
+            <TableCell align="center" sx={{ fontWeight: "bold" }}>
               Operaciones
             </TableCell>
           </TableRow>
@@ -109,25 +109,33 @@ const UserList = () => {
               sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
             >
               <TableCell align="left">{user.rut}</TableCell>
-              <TableCell align="left">{user.name}</TableCell>
-              <TableCell align="right">{user.salary}</TableCell>
-              <TableCell align="right">{user.children}</TableCell>
-              <TableCell align="right">{user.category}</TableCell>
-              <TableCell>
+          <TableCell align="left">{user.name}</TableCell>
+          <TableCell align="left">{user.lastName}</TableCell>
+          <TableCell align="left">{user.email}</TableCell>
+          <TableCell align="left">
+            {new Date(user.birthDate).toLocaleDateString("es-CL")}
+          </TableCell>
+              <TableCell align="center">
                 <Button
                   variant="contained"
-                  color="info"
+                  sx ={{ 
+                    backgroundColor: "var(--primary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
+                   }}
                   size="small"
                   onClick={() => handleEdit(user.id)}
-                  style={{ marginLeft: "0.5rem" }}
                   startIcon={<EditIcon />}
                 >
                   Editar
                 </Button>
-
                 <Button
                   variant="contained"
-                  color="error"
+                  sx ={{ 
+                    backgroundColor: "var(--secondary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
+                   }}
                   size="small"
                   onClick={() => handleDelete(user.id)}
                   style={{ marginLeft: "0.5rem" }}

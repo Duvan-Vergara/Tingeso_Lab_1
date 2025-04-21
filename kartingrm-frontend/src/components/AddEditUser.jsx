@@ -5,7 +5,6 @@ import Box from "@mui/material/Box";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import FormControl from "@mui/material/FormControl";
-import MenuItem from "@mui/material/MenuItem";
 import SaveIcon from "@mui/icons-material/Save";
 
 const AddEditUser = () => {
@@ -14,6 +13,7 @@ const AddEditUser = () => {
   const[lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const[birthDate, setBirthDate] = useState("");
+  const [titleUserForm, setTitleUserForm] = useState("");
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -55,15 +55,15 @@ const AddEditUser = () => {
   useEffect(() => {
     if (id) {
       setTitleUserForm("Editar Usuario");
-      //Obtener Datos Usuario
+      // Obtener Datos Usuario
       userService
         .get(id)
         .then((user) => {
           setRut(user.data.rut);
           setName(user.data.name);
-          setlastName(user.data.lastName);
+          setLastName(user.data.lastName);
           setEmail(user.data.email);
-          setBirthDate(user.data.birthDate);
+          setBirthDate(user.data.birthDate.split("T")[0]); // Formatear fecha
         })
         .catch((error) => {
           console.log("Se ha producido un error.", error);
@@ -80,8 +80,16 @@ const AddEditUser = () => {
       alignItems="center"
       justifyContent="center"
       component="form"
+      sx={{
+        backgroundColor: "rgba(30, 30, 47, 0.9)", // Fondo translúcido
+        padding: "2rem",
+        borderRadius: "12px",
+        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
+        maxWidth: "600px",
+        margin: "2rem auto",
+      }}
     >
-      <h3> {titleUserForm} </h3>
+      <h3 style={{ color: "var(--accent-color)" }}> {titleUserForm} </h3>
       <hr />
       <form>
         <FormControl fullWidth>
@@ -92,6 +100,12 @@ const AddEditUser = () => {
             variant="standard"
             onChange={(e) => setRut(e.target.value)}
             helperText="Ej. 12.587.698-8"
+            InputLabelProps={{ style: { color: "var(--text-color)" } }}
+            sx={{
+              "& .MuiInputBase-root": { color: "var(--text-color)" },
+              "& .MuiInput-underline:before": { borderBottomColor: "var(--border-color)" },
+               "& .MuiInput-underline:hover:before": { borderBottomColor: "var(--accent-color)" },
+            }}
           />
         </FormControl>
 
@@ -102,6 +116,12 @@ const AddEditUser = () => {
             value={name}
             variant="standard"
             onChange={(e) => setName(e.target.value)}
+            InputLabelProps={{ style: { color: "var(--text-color)" } }}
+            sx={{
+              "& .MuiInputBase-root": { color: "var(--text-color)" },
+              "& .MuiInput-underline:before": { borderBottomColor: "var(--border-color)" },
+               "& .MuiInput-underline:hover:before": { borderBottomColor: "var(--accent-color)" },
+            }}
           />
         </FormControl>
 
@@ -112,6 +132,12 @@ const AddEditUser = () => {
             value={lastName}
             variant="standard"
             onChange={(e) => setLastName(e.target.value)}
+            InputLabelProps={{ style: { color: "var(--text-color)" } }}
+            sx={{
+              "& .MuiInputBase-root": { color: "var(--text-color)" },
+              "& .MuiInput-underline:before": { borderBottomColor: "var(--border-color)" },
+               "& .MuiInput-underline:hover:before": { borderBottomColor: "var(--accent-color)" },
+            }}
           />
         </FormControl>
 
@@ -123,6 +149,12 @@ const AddEditUser = () => {
             variant="standard"
             onChange={(e) => setEmail(e.target.value)}
             helperText="Ej. example@gmail.com"
+            InputLabelProps={{ style: { color: "var(--text-color)" } }}
+            sx={{
+              "& .MuiInputBase-root": { color: "var(--text-color)" },
+              "& .MuiInput-underline:before": { borderBottomColor: "var(--border-color)" },
+               "& .MuiInput-underline:hover:before": { borderBottomColor: "var(--accent-color)" },
+            }}
           />
         </FormControl>
 
@@ -140,6 +172,12 @@ const AddEditUser = () => {
               }}
               helperText="Formato: dd-mm-yyyy"
               placeholder="dd-mm-yyyy"
+              InputLabelProps={{ style: { color: "var(--text-color)" } }}
+              sx={{
+                "& .MuiInputBase-root": { color: "var(--text-color)" },
+                "& .MuiInput-underline:before": { borderBottomColor: "var(--border-color)" },
+                "& .MuiInput-underline:hover:before": { borderBottomColor: "var(--accent-color)" },
+              }}
             />
         </FormControl>
 
