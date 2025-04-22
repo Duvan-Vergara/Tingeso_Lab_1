@@ -5,9 +5,12 @@ import Home from './components/Home';
 import UserList from './components/UsersList';
 import AddEditUser from './components/AddEditUser';
 import ReserveList from './components/ReserveList';
+import TariffList from './components/TariffList';
+import AddEditTariff from './components/AddEditTariff';
+import AddEditSpecialDay from './components/AddEditSpecialDay';
 import ReserveReports from './components/ReserveReports';
 import AddEditReserve from './components/AddEditReserve';
-import SpecialdayList from './components/SpecialDayList';
+import SpecialDayList from './components/SpecialDayList';
 import ExtraHoursList from './components/ExtraHoursList';
 import AddEditExtraHours from './components/AddEditExtraHours';
 import NotFound from './components/NotFound';
@@ -29,11 +32,12 @@ function App() {
               <Route path="/reserve/add" element={<AddEditReserve/>} />
               <Route path="/reserve/edit/:id" element={<AddEditReserve/>} />
               <Route path="/reserve/report/:id" element={<ReserveReports/>} />
-              <Route path="/specialday/list" element={<SpecialdayList/>} />
-
-
-
-
+              <Route path="/specialday/list" element={<SpecialDayList/>} />
+              <Route path="/specialdays/add" element={<AddEditSpecialDay />} />
+              <Route path="/specialdays/edit/:id" element={<AddEditSpecialDay />} />
+              <Route path="/tariff/list" element={<TariffList />} />
+              <Route path="/tariff/add" element={<AddEditTariff />} />
+              <Route path="/tariff/edit/:id" element={<AddEditTariff />}/>
               <Route path="/paycheck/list" element={<PaycheckList/>} />
               <Route path="/paycheck/calculate" element={<PaycheckCalculate/>} />
               <Route path="/reports/AnualReport" element={<AnualReport/>} />

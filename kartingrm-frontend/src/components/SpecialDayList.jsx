@@ -13,6 +13,7 @@ import TextField from "@mui/material/TextField";
 const SpecialDayList = () => {
   const [specialDays, setSpecialDays] = useState([]);
   const [newDate, setNewDate] = useState("");
+  const [description, setDescription] = useState("");
 
   const loadSpecialDays = () => {
     specialDayService
@@ -25,27 +26,41 @@ const SpecialDayList = () => {
       });
   };
 
+  // Agregar un nuevo día especial
   const addSpecialDay = () => {
+    if (!newDate || !description) {
+      alert("Por favor, complete todos los campos.");
+      return;
+    }
+
+    const specialDay = { date: newDate, description };
     specialDayService
-      .createSpecialDay({ date: newDate })
+      .createSpecialDay(specialDay)
       .then(() => {
         loadSpecialDays();
         setNewDate("");
+        setDescription("");
       })
       .catch((error) => {
-        console.error("Error al agregar día especial:", error);
+        console.error("Error al agregar el día especial:", error);
       });
   };
 
+  // Eliminar un día especial
   const deleteSpecialDay = (id) => {
-    specialDayService
-      .deleteSpecialDayById(id)
-      .then(() => {
-        loadSpecialDays();
-      })
-      .catch((error) => {
-        console.error("Error al eliminar día especial:", error);
-      });
+    const confirmDelete = window.confirm(
+      "¿Está seguro de que desea eliminar este día especial?"
+    );
+    if (confirmDelete) {
+      specialDayService
+        .deleteSpecialDayById(id)
+        .then(() => {
+          loadSpecialDays();
+        })
+        .catch((error) => {
+          console.error("Error al eliminar el día especial:", error);
+        });
+    }
   };
 
   useEffect(() => {
@@ -53,19 +68,29 @@ const SpecialDayList = () => {
   }, []);
 
   return (
-    <TableContainer component={Paper}>
-      <h3>Días Especiales</h3>
+    <TableContainer component={Paper} sx={{ backgroundColor: "rgba(30, 30, 47, 0.9)" }}>
+      <h3 style={{ color: "var(--accent-color)", textAlign: "center" }}>
+        Días Especiales
+      </h3>
       <Table>
         <TableHead>
           <TableRow>
-            <TableCell>Fecha</TableCell>
-            <TableCell>Acciones</TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
+              Fecha
+            </TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
+              Descripción
+            </TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
+              Acciones
+            </TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {specialDays.map((day) => (
             <TableRow key={day.id}>
-              <TableCell>{day.date}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{day.date}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{day.description}</TableCell>
               <TableCell>
                 <Button
                   variant="contained"
@@ -85,7 +110,13 @@ const SpecialDayList = () => {
         value={newDate}
         onChange={(e) => setNewDate(e.target.value)}
         InputLabelProps={{ shrink: true }}
-        style={{ marginTop: "1rem" }}
+        style={{ marginTop: "1rem", marginRight: "1rem" }}
+      />
+      <TextField
+        label="Descripción"
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        style={{ marginTop: "1rem", marginRight: "1rem" }}
       />
       <Button
         variant="contained"

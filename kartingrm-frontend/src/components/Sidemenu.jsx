@@ -8,11 +8,7 @@ import ListItemIcon from "@mui/material/ListItemIcon";
 import ListItemText from "@mui/material/ListItemText";
 import PeopleAltIcon from "@mui/icons-material/PeopleAlt";
 import PaidIcon from "@mui/icons-material/Paid";
-import CalculateIcon from "@mui/icons-material/Calculate";
-import AnalyticsIcon from "@mui/icons-material/Analytics";
 import DiscountIcon from "@mui/icons-material/Discount";
-import HailIcon from "@mui/icons-material/Hail";
-import MedicationLiquidIcon from "@mui/icons-material/MedicationLiquid";
 import MoreTimeIcon from "@mui/icons-material/MoreTime";
 import HomeIcon from "@mui/icons-material/Home";
 import { useNavigate } from "react-router-dom";
@@ -24,6 +20,11 @@ export default function Sidemenu({ open, toggleDrawer }) {
     <Box
       role="presentation"
       onClick={toggleDrawer(false)}
+      sx={{
+        backgroundColor: "rgba(30,30,47,0.9)",
+        height: "100%",
+        color: "var(--text-color)",
+      }}
     >
       <List>
         <ListItemButton onClick={() => navigate("/home")}>
@@ -37,82 +38,33 @@ export default function Sidemenu({ open, toggleDrawer }) {
 
         <ListItemButton onClick={() => navigate("/user/list")}>
           <ListItemIcon>
-            <PeopleAltIcon />
+            <PeopleAltIcon sx={{color: "var(--accent-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Usuarios" />
         </ListItemButton>
 
         <ListItemButton onClick={() => navigate("/reserve/list")}>
           <ListItemIcon>
-            <MoreTimeIcon />
+            <MoreTimeIcon sx={{ color: "var(--accent-color)"}} />
           </ListItemIcon>
           <ListItemText primary="Reservas" />
         </ListItemButton>
 
-        <ListItemButton onClick={() => navigate("/reserve/reports")}>
-          <ListItemIcon>
-            <AnalyticsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Reportes de Reservas" />
-        </ListItemButton>
-
         <ListItemButton onClick={() => navigate("/specialdays/list")}>
           <ListItemIcon>
-            <DiscountIcon />
+            <DiscountIcon sx={{ color: "var(--accent-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Días Especiales" />
         </ListItemButton>
 
-        <ListItemButton onClick={() => navigate("/extraHours/list")}>
+        <ListItemButton onClick={() => navigate("/tariff/list")}>
           <ListItemIcon>
-            <MoreTimeIcon />
+            <PaidIcon sx={{ color: "var(--accent-color)" }} />
           </ListItemIcon>
-          <ListItemText primary="Horas Extra" />
-        </ListItemButton>
-
-        <ListItemButton onClick={() => navigate("/paycheck/list")}>
-          <ListItemIcon>
-            <PaidIcon />
-          </ListItemIcon>
-          <ListItemText primary="Planilla Sueldos" />
-        </ListItemButton>
-
-        <ListItemButton onClick={() => navigate("/paycheck/calculate")}>
-          <ListItemIcon>
-            <CalculateIcon />
-          </ListItemIcon>
-          <ListItemText primary="Calcular Planilla" />
-        </ListItemButton>
-        <ListItemButton onClick={() => navigate("/reports/AnualReport")}>
-          <ListItemIcon>
-            <AnalyticsIcon />
-          </ListItemIcon>
-          <ListItemText primary="Gráficos Planillas" />
+          <ListItemText primary="Tarifas" />
         </ListItemButton>
       </List>
-
-      <Divider />
-
-      <List>
-        <ListItemButton onClick={() => navigate("/employee/discounts")}>
-          <ListItemIcon>
-            <DiscountIcon />
-          </ListItemIcon>
-          <ListItemText primary="Descuentos" />
-        </ListItemButton>
-        <ListItemButton onClick={() => navigate("/paycheck/vacations")}>
-          <ListItemIcon>
-            <HailIcon />
-          </ListItemIcon>
-          <ListItemText primary="Vacaciones" />
-        </ListItemButton>
-        <ListItemButton onClick={() => navigate("/paycheck/medicalleave")}>
-          <ListItemIcon>
-            <MedicationLiquidIcon />
-          </ListItemIcon>
-          <ListItemText primary="Licencias Medicas" />
-        </ListItemButton>
-      </List>
+      <Divider sx={{ backgroundColor: "var(--border-color)" }} />
     </Box>
   );
 
