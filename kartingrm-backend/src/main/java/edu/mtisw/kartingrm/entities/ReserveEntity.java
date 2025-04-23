@@ -5,7 +5,9 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import java.util.Date;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Set;
 
 @Entity
@@ -20,17 +22,17 @@ public class ReserveEntity {
     @Column(unique = true, nullable = false)
     private Long id;
 
-    @DateTimeFormat(pattern = "dd-mm-yyyy")
-    @Column(nullable = false, name = "reserveday")
-    private Date date;
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
+    @Column(nullable = false, name = "reserveday", columnDefinition = "DATE")
+    private LocalDate date;
 
-    @DateTimeFormat(pattern = "hh:mm")
+    @DateTimeFormat(pattern = "HH:mm")
     @Column(nullable = false, name = "begin")
-    private Date begin;
+    private LocalTime begin;
 
-    @DateTimeFormat(pattern = "hh:mm")
+    @DateTimeFormat(pattern = "HH:mm")
     @Column(nullable = false, name = "finish")
-    private Date finish;
+    private LocalTime finish;
 
     @ManyToMany
     @JoinTable(

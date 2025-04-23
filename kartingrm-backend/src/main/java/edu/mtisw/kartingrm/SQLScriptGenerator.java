@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.*;
 
@@ -92,7 +93,7 @@ public class SQLScriptGenerator {
             for (ReserveEntity reserve : reserves) {
                 writer.write(String.format(Locale.US,
                         "INSERT INTO reserves (reserveday, begin, finish, tariff_id, final_price) " +
-                                "VALUES ('%tF', '%tT', '%tT', %d, %.2f);\n",
+                                "VALUES ('%tF', '%s', '%s', %d, %.2f);\n",
                         reserve.getDate(), reserve.getBegin(), reserve.getFinish(),
                         tariffs.indexOf(reserve.getTariff()) + 1, reserve.getFinalPrice()
                 ));
@@ -172,7 +173,6 @@ public class SQLScriptGenerator {
 
             for (int j = 0; j < reservationsInWeek; j++) {
                 LocalDate reserveDay = randomDate.plusDays(random.nextInt(7)); // Día aleatorio dentro de la semana
-                Date reserveDate = Date.from(reserveDay.atStartOfDay(ZoneId.systemDefault()).toInstant());
 
                 // Determinar si es fin de semana o feriado
                 boolean isWeekendOrHoliday = reserveDay.getDayOfWeek().getValue() >= 6 ||
@@ -183,8 +183,8 @@ public class SQLScriptGenerator {
                 int duration = 1 + random.nextInt(3); // Duración de 1 a 3 horas
                 int endHour = Math.min(startHour + duration, 22); // Asegurar que no exceda las 22:00
 
-                Date begin = Date.from(reserveDay.atTime(startHour, 0).atZone(ZoneId.systemDefault()).toInstant());
-                Date finish = Date.from(reserveDay.atTime(endHour, 0).atZone(ZoneId.systemDefault()).toInstant());
+                LocalTime begin = LocalTime.of(startHour, 0);
+                LocalTime finish = LocalTime.of(endHour, 0);
 
                 TariffEntity tariff = tariffs.get(random.nextInt(tariffs.size()));
 
@@ -193,9 +193,10 @@ public class SQLScriptGenerator {
                 while (group.size() < groupSize) {
                     group.add(users.get(random.nextInt(users.size())));
                 }
+
                 ReserveEntity reserve = new ReserveEntity();
                 reserve.setId((long) reserveId++); // Asignar ID único
-                reserve.setDate(reserveDate);
+                reserve.setDate(reserveDay);
                 reserve.setBegin(begin);
                 reserve.setFinish(finish);
                 reserve.setGroup(group);

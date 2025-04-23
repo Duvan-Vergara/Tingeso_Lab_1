@@ -36,9 +36,6 @@ export default function Navbar() {
             sx={{ flexGrow: 1, color: "var(--text-color)" }}>
             KartingRM: Negocio líder en la industria del karting
           </Typography>
-          <Button color="inherit" sx={{ color: "var(--text-color)" }}>
-            Login
-            </Button>
         </Toolbar>
       </AppBar>
       <Sidemenu open={open} toggleDrawer={toggleDrawer}></Sidemenu>

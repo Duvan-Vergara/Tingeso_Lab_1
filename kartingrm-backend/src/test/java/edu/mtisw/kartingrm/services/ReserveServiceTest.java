@@ -5,8 +5,6 @@ import edu.mtisw.kartingrm.entities.TariffEntity;
 import edu.mtisw.kartingrm.repositories.SpecialDayRepository;
 import edu.mtisw.kartingrm.repositories.TariffRepository;
 import edu.mtisw.kartingrm.utils.ComplementReserve;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -28,7 +26,6 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
-import java.util.Date;
 import java.util.*;
 
 import static org.junit.Assert.assertThrows;
@@ -86,18 +83,18 @@ public class ReserveServiceTest {
         doCallRealMethod().when(complementReserve).calculateGroupSizeDiscount(anyInt());
         doCallRealMethod().when(complementReserve).calculateBestDiscount(any(ReserveEntity.class), anyList());
         doCallRealMethod().when(complementReserve).calculateFrequentCustomerDiscount(anyList());
-        doCallRealMethod().when(complementReserve).isBirthday(any(UserEntity.class), any(Date.class));
+        doCallRealMethod().when(complementReserve).isBirthday(any(UserEntity.class), any(LocalDate.class));
 
-        user = new UserEntity(1L, "12.345.678-9", "Yugo", "Smith", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(1995, 5, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user2 = new UserEntity(2L, "98.765.432-1", "Anna", "Johnson", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(1990, 8, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user3 = new UserEntity(3L, "11.223.344-5", "Carlos", "Gomez", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(1988, 12, 10).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user4 = new UserEntity(4L, "22244333-5", "User4", "LastName4", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2004, 2, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user5 = new UserEntity(5L, "58176622-0", "User5", "LastName5", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2002, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user6 = new UserEntity(6L, "98877299-5", "User6", "LastName6", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2008, 4, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user7 = new UserEntity(7L, "9190820-5", "User7", "LastName7", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2002, 9, 7).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user8 = new UserEntity(8L, "63106613-7", "User8", "LastName8", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(1997, 11, 3).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user9 = new UserEntity(9L, "35709765-2", "User9", "LastName9", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2008, 11, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user10 = new UserEntity(10L, "6021623-0", "User10", "LastName10", "duvanvch12@gmail.com", java.util.Date.from(LocalDate.of(2000, 12, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user = new UserEntity(1L, "12.345.678-9", "Yugo", "Smith", "duvanvch12@gmail.com", Date.from(LocalDate.of(1995, 5, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user2 = new UserEntity(2L, "98.765.432-1", "Anna", "Johnson", "duvanvch12@gmail.com", Date.from(LocalDate.of(1990, 8, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user3 = new UserEntity(3L, "11.223.344-5", "Carlos", "Gomez", "duvanvch12@gmail.com", Date.from(LocalDate.of(1988, 12, 10).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user4 = new UserEntity(4L, "22244333-5", "User4", "LastName4", "duvanvch12@gmail.com", Date.from(LocalDate.of(2004, 2, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user5 = new UserEntity(5L, "58176622-0", "User5", "LastName5", "duvanvch12@gmail.com", Date.from(LocalDate.of(2002, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user6 = new UserEntity(6L, "98877299-5", "User6", "LastName6", "duvanvch12@gmail.com", Date.from(LocalDate.of(2008, 4, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user7 = new UserEntity(7L, "9190820-5", "User7", "LastName7", "duvanvch12@gmail.com", Date.from(LocalDate.of(2002, 9, 7).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user8 = new UserEntity(8L, "63106613-7", "User8", "LastName8", "duvanvch12@gmail.com", Date.from(LocalDate.of(1997, 11, 3).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user9 = new UserEntity(9L, "35709765-2", "User9", "LastName9", "duvanvch12@gmail.com", Date.from(LocalDate.of(2008, 11, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user10 = new UserEntity(10L, "6021623-0", "User10", "LastName10", "duvanvch12@gmail.com", Date.from(LocalDate.of(2000, 12, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
 
 
         Set<UserEntity> group = new LinkedHashSet<>();
@@ -128,27 +125,27 @@ public class ReserveServiceTest {
 
         reserve1 = new ReserveEntity();
         reserve1.setId(2L);
-        reserve1.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve1.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve1.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve1.setDate(LocalDate.of(2023, 12, 20));
+        reserve1.setBegin(LocalTime.of(17, 0));
+        reserve1.setFinish(LocalTime.of(17, 30));
         reserve1.setGroup(group1);
         reserve1.setTariff(tariff1);
         reserve1.setFinalPrice(0.0);
 
         reserve = new ReserveEntity();
         reserve.setId(1L);
-        reserve.setDate(new Date());
-        reserve.setBegin(new Date());
-        reserve.setFinish(Date.from(reserve.getBegin().toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime().plusMinutes(30).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve.setDate(LocalDate.now());
+        reserve.setBegin(LocalTime.now());
+        reserve.setFinish(reserve.getBegin().plusMinutes(30));
         reserve.setGroup(group);
         reserve.setTariff(tariff1);
         reserve.setFinalPrice(0.0);
 
         reserve2 = new ReserveEntity();
         reserve2.setId(3L);
-        reserve2.setDate(java.util.Date.from(LocalDate.of(2023, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve2.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve2.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve2.setDate(LocalDate.of(2023, 12, 20));
+        reserve2.setBegin(LocalTime.of(17, 0));
+        reserve2.setFinish(LocalTime.of(17, 30));
         reserve2.setGroup(group1);
         reserve2.setTariff(tariff1);
         reserve2.setFinalPrice(0.0);
@@ -156,27 +153,27 @@ public class ReserveServiceTest {
 
         reserve3 = new ReserveEntity();
         reserve3.setId(4L);
-        reserve3.setDate(java.util.Date.from(LocalDate.of(2025, 4, 8).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve3.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve3.setFinish(java.util.Date.from(LocalTime.of(17, 35).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve3.setDate(LocalDate.of(2025, 4, 8));
+        reserve3.setBegin(LocalTime.of(17, 0));
+        reserve3.setFinish(LocalTime.of(17, 35));
         reserve3.setGroup(group1);
         //reserve3.setTariff(tariff1);
         //reserve3.setFinalPrice(0.0);
 
         reserve4 = new ReserveEntity();
         reserve4.setId(5L);
-        reserve4.setDate(java.util.Date.from(LocalDate.of(2025, 4, 9).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve4.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve4.setFinish(java.util.Date.from(LocalTime.of(17, 30).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve4.setDate(LocalDate.of(2025, 4, 9));
+        reserve4.setBegin(LocalTime.of(17, 0));
+        reserve4.setFinish(LocalTime.of(17, 30));
         reserve4.setGroup(group2);
         //reserve4.setTariff(tariff1);
         //reserve4.setFinalPrice(0.0);
 
         reserve5 = new ReserveEntity();
         reserve5.setId(6L);
-        reserve5.setDate(java.util.Date.from(LocalDate.of(2025, 4, 10).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        reserve5.setBegin(java.util.Date.from(LocalTime.of(17, 0).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
-        reserve5.setFinish(java.util.Date.from(LocalTime.of(17, 40).atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant()));
+        reserve5.setDate(LocalDate.of(2025, 4, 10));
+        reserve5.setBegin(LocalTime.of(17, 0));
+        reserve5.setFinish(LocalTime.of(17, 40));
         reserve5.setGroup(group3);
         //reserve5.setTariff(tariff1);
         //reserve5.setFinalPrice(0.0);
@@ -271,7 +268,7 @@ public class ReserveServiceTest {
     void whenGetTariffForDateOnSpecialDay_thenReturnHolidayPrice() {
         // Given
         LocalDate specialDay = LocalDate.of(2023, 12, 25); // Navidad
-        reserve.setDate(Date.from(specialDay.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        reserve.setDate(specialDay);
         when(complementReserve.isSpecialDay(specialDay)).thenReturn(true);
 
         // When
@@ -284,8 +281,8 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationGreaterThanLongestTariff_thenReturnLongestTariff() {
         // Given
-        Date startTime = new Date();
-        Date endTime = Date.from(startTime.toInstant().plusSeconds(3600)); // 60 minutos
+        LocalTime startTime = LocalTime.now();
+        LocalTime endTime = startTime.plusMinutes(60); // 60 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
         // When
@@ -298,8 +295,8 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationBetweenTariffs_thenReturnCorrectTariff_2() {
         // Given
-        Date startTime = new Date();
-        Date endTime = Date.from(startTime.toInstant().plusSeconds(120)); // 2 minutos
+        LocalTime startTime = LocalTime.now();
+        LocalTime endTime = startTime.plusMinutes(2); // 2 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
         // When
@@ -312,8 +309,8 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationBetweenTariffs_thenReturnCorrectTariff() {
         // Given
-        Date startTime = new Date();
-        Date endTime = Date.from(startTime.toInstant().plusSeconds(2100)); // 35 minutos
+        LocalTime startTime = LocalTime.now();
+        LocalTime endTime = startTime.plusMinutes(35); // 35 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
         // When
@@ -326,8 +323,8 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithNoSuitableTariff_thenThrowException() {
         // Given
-        Date startTime = new Date();
-        Date endTime = Date.from(startTime.toInstant().plusSeconds(100)); // 1 minuto
+        LocalTime startTime = LocalTime.now();
+        LocalTime endTime = startTime.plusMinutes(1); // 1 minutos
         List<TariffEntity> tariffs = new ArrayList<>(); // Sin tarifas
 
         // When & Then
@@ -338,7 +335,7 @@ public class ReserveServiceTest {
     void whenGetTariffForDateOnWeekend_thenReturnWeekendPrice() {
         // Given
         LocalDate weekendDay = LocalDate.of(2023, 12, 23); // Sábado
-        reserve.setDate(Date.from(weekendDay.atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        reserve.setDate(weekendDay);
         when(complementReserve.isSpecialDay(weekendDay)).thenReturn(false);
         when(complementReserve.isWeekend(weekendDay)).thenReturn(true);
 
@@ -352,8 +349,8 @@ public class ReserveServiceTest {
     @Test
     void whenDurationFallsBetweenTwoTariffs_thenReturnClosestHigherTariff() {
         // Given
-        Date startTime = new Date();
-        Date endTime = Date.from(startTime.toInstant().plusSeconds(2500)); // 41 minutos
+        LocalTime startTime = LocalTime.now();
+        LocalTime endTime = startTime.plusMinutes(41); // 41 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
         // When
@@ -435,25 +432,25 @@ public class ReserveServiceTest {
     void whenGetReserveByMonthAndRut_thenReturnList() {
         // Given
         List<ReserveEntity> reserves = List.of(reserve);
-        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1)).thenReturn(reserves);
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonthValue() + 1)).thenReturn(reserves);
 
         // When
-        List<ReserveEntity> result = reserveService.getReservesByDate_MonthANDRut(user.getRut(), reserve.getDate().getMonth() + 1);
+        List<ReserveEntity> result = reserveService.getReservesByDate_MonthANDRut(user.getRut(), reserve.getDate().getMonthValue() + 1);
 
         // Then
         assertThat(result).isNotNull();
         assertThat(result.size()).isEqualTo(1);
-        verify(reserveRepository, times(1)).getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1);
+        verify(reserveRepository, times(1)).getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonthValue() + 1);
     }
 
     @Test
     void whenCalculateFinalPrice_thenReturnCorrectPrice() {
         // Given
-        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonth() + 1))
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonthValue() + 1))
                 .thenReturn(List.of());
 
         // When
-        double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonth() + 1);
+        double finalPrice = reserveService.calculateFinalPrice(reserve, reserve.getDate().getMonthValue() + 1);
         // Then
         assertThat(finalPrice).isEqualTo(40500.0);
     }
@@ -463,7 +460,7 @@ public class ReserveServiceTest {
     void whenCalculateFinalPrice2_thenReturnCorrectPrice() {
         // Given
         // Simular que el usuario tiene una reserva previa en el mes
-        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonth() + 1))
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonthValue() + 1))
                 .thenReturn(List.of(reserve1));
 
         // Calcular el precio base según la tarifa
@@ -471,23 +468,23 @@ public class ReserveServiceTest {
 
         // Calcular el descuento por tamaño del grupo
         double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve1.getGroup().size());
-        List<Double> descuentos = new ArrayList<>() ;
+        List<Double> descuentos = new ArrayList<>();
         double descfrecuent;
         // Calcular el descuento por cliente frecuente
-        for (UserEntity  u : reserve1.getGroup()){
-            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonth() + 1);
+        for (UserEntity u : reserve1.getGroup()) {
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonthValue() + 1);
             descfrecuent = reserveService.complementReserve.calculateFrequentCustomerDiscount(userReserves);
             descuentos.add(Math.max(groupDiscount, descfrecuent));
         }
 
         // Calcular el precio final esperado
         double expectedPrice = 0.0;
-        for (double d : descuentos){
+        for (double d : descuentos) {
             expectedPrice += basePrice * (1 - d);
         }
 
         // When
-        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
+        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonthValue() + 1);
 
         // Then
         assertThat(finalPrice).isEqualTo(expectedPrice);
@@ -497,7 +494,7 @@ public class ReserveServiceTest {
     void whenCalculateFinalPrice3_thenReturnCorrectPrice() {
         // Given
         // Simular que el usuario tiene una reserva previa en el mes
-        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonth() + 1))
+        when(reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve1.getDate().getMonthValue() + 1))
                 .thenReturn(List.of(reserve1, reserve));
 
         // Calcular el precio base según la tarifa
@@ -505,23 +502,23 @@ public class ReserveServiceTest {
 
         // Calcular el descuento por tamaño del grupo
         double groupDiscount = reserveService.complementReserve.calculateGroupSizeDiscount(reserve1.getGroup().size());
-        List<Double> descuentos = new ArrayList<>() ;
+        List<Double> descuentos = new ArrayList<>();
         double descfrecuent;
         // Calcular el descuento por cliente frecuente
-        for (UserEntity  u : reserve1.getGroup()){
-            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonth() + 1);
+        for (UserEntity u : reserve1.getGroup()) {
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(u.getRut(), reserve1.getDate().getMonthValue() + 1);
             descfrecuent = reserveService.complementReserve.calculateFrequentCustomerDiscount(userReserves);
             descuentos.add(Math.max(groupDiscount, descfrecuent));
         }
 
         // Calcular el precio final esperado
         double expectedPrice = 0.0;
-        for (double d : descuentos){
+        for (double d : descuentos) {
             expectedPrice += basePrice * (1 - d);
         }
 
         // When
-        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
+        double finalPrice = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonthValue() + 1);
 
         // Then
         assertThat(finalPrice).isEqualTo(expectedPrice);
@@ -537,7 +534,7 @@ public class ReserveServiceTest {
         when(complementReserve.calculateBirthdayLimit(1)).thenReturn(1);
 
         // When
-        double result = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonth() + 1);
+        double result = reserveService.calculateFinalPrice(reserve1, reserve1.getDate().getMonthValue() + 1);
 
 
         // Then
@@ -587,9 +584,9 @@ public class ReserveServiceTest {
             for (int j = 0; j < 3; j++) { // Tres reservas por día
                 ReserveEntity reserve = new ReserveEntity();
                 reserve.setId((long) (i * 3 + j + 1));
-                reserve.setDate(java.util.Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant()));
-                reserve.setBegin(java.util.Date.from(date.atTime(9 + j, 0).atZone(ZoneId.systemDefault()).toInstant())); // 9:00, 10:00, 11:00
-                reserve.setFinish(java.util.Date.from(date.atTime(9 + j, 30).atZone(ZoneId.systemDefault()).toInstant())); // 9:30, 10:30, 11:30
+                reserve.setDate(date);
+                reserve.setBegin(LocalTime.of(9 + j, 0)); // 9:00, 10:00, 11:00
+                reserve.setFinish(LocalTime.of(9 + j, 30)); // 9:30, 10:30, 11:30
                 UserEntity user = new UserEntity((long) (i * 3 + j + 1), "RUT-" + (i * 3 + j + 1), "User" + (i * 3 + j + 1), "LastName" + (i * 3 + j + 1), "user" + (i * 3 + j + 1) + "@example.com", new Date());
                 reserve.setGroup(Set.of(user));
                 reserves.add(reserve);
@@ -715,94 +712,94 @@ public class ReserveServiceTest {
         // Then
         System.out.println("Correos enviados correctamente(SendPaymentReceipts). Verifica las bandejas de entrada.");
     }
-/*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-@Test
-void testGenerateTariffReport_SuccessWithMultipleMonths() throws IOException {
-    // Given
-    LocalDate startDate = LocalDate.of(2024, 1, 1);
-    LocalDate endDate = LocalDate.of(2024, 3, 31);
 
-    TariffEntity tariff1 = new TariffEntity(1L, 10, 10, 15000.0, 30, 5.0, 20.0, 14250.0, 18000.0);
-    TariffEntity tariff2 = new TariffEntity(2L, 15, 15, 22000.0, 45, 5.0, 20.0, 20900.0, 26400.0);
-    TariffEntity tariff3 = new TariffEntity(3L, 20, 20, 28000.0, 60, 5.0, 20.0, 26600.0, 33600.0);
+    @Test
+    void testGenerateTariffReport_SuccessWithMultipleMonths() throws IOException {
+        // Given
+        LocalDate startDate = LocalDate.of(2024, 1, 1);
+        LocalDate endDate = LocalDate.of(2024, 3, 31);
 
-    when(tariffRepository.findAll()).thenReturn(Arrays.asList(tariff1, tariff2, tariff3));
+        TariffEntity tariff1 = new TariffEntity(1L, 10, 10, 15000.0, 30, 5.0, 20.0, 14250.0, 18000.0);
+        TariffEntity tariff2 = new TariffEntity(2L, 15, 15, 22000.0, 45, 5.0, 20.0, 20900.0, 26400.0);
+        TariffEntity tariff3 = new TariffEntity(3L, 20, 20, 28000.0, 60, 5.0, 20.0, 26600.0, 33600.0);
 
-    // Crear reservas para varios meses
-    List<ReserveEntity> reserves = new ArrayList<>();
+        when(tariffRepository.findAll()).thenReturn(Arrays.asList(tariff1, tariff2, tariff3));
 
-    // Enero: 2 reservas con tarifa1, 1 con tarifa2, 1 con tarifa3
-    ReserveEntity reserve1 = createReserve(tariff1, LocalDate.of(2024, 1, 5), 10000.0);
-    ReserveEntity reserve2 = createReserve(tariff1, LocalDate.of(2024, 1, 15), 12000.0);
-    ReserveEntity reserve3 = createReserve(tariff2, LocalDate.of(2024, 1, 20), 20000.0);
-    ReserveEntity reserve4 = createReserve(tariff3, LocalDate.of(2024, 1, 25), 25000.0);
+        // Crear reservas para varios meses
+        List<ReserveEntity> reserves = new ArrayList<>();
 
-    // Febrero: 1 reserva con tarifa1, 2 con tarifa2, 1 con tarifa3
-    ReserveEntity reserve5 = createReserve(tariff1, LocalDate.of(2024, 2, 5), 15000.0);
-    ReserveEntity reserve6 = createReserve(tariff2, LocalDate.of(2024, 2, 15), 22000.0);
-    ReserveEntity reserve7 = createReserve(tariff2, LocalDate.of(2024, 2, 20), 20000.0);
-    ReserveEntity reserve8 = createReserve(tariff3, LocalDate.of(2024, 2, 25), 28000.0);
+        // Enero: 2 reservas con tarifa1, 1 con tarifa2, 1 con tarifa3
+        ReserveEntity reserve1 = createReserve(tariff1, LocalDate.of(2024, 1, 5), 10000.0);
+        ReserveEntity reserve2 = createReserve(tariff1, LocalDate.of(2024, 1, 15), 12000.0);
+        ReserveEntity reserve3 = createReserve(tariff2, LocalDate.of(2024, 1, 20), 20000.0);
+        ReserveEntity reserve4 = createReserve(tariff3, LocalDate.of(2024, 1, 25), 25000.0);
 
-    // Marzo: 1 reserva con tarifa1, 1 con tarifa2, 2 con tarifa3
-    ReserveEntity reserve9 = createReserve(tariff1, LocalDate.of(2024, 3, 5), 12000.0);
-    ReserveEntity reserve10 = createReserve(tariff2, LocalDate.of(2024, 3, 15), 21000.0);
-    ReserveEntity reserve11 = createReserve(tariff3, LocalDate.of(2024, 3, 20), 27000.0);
-    ReserveEntity reserve12 = createReserve(tariff3, LocalDate.of(2024, 3, 25), 26000.0);
+        // Febrero: 1 reserva con tarifa1, 2 con tarifa2, 1 con tarifa3
+        ReserveEntity reserve5 = createReserve(tariff1, LocalDate.of(2024, 2, 5), 15000.0);
+        ReserveEntity reserve6 = createReserve(tariff2, LocalDate.of(2024, 2, 15), 22000.0);
+        ReserveEntity reserve7 = createReserve(tariff2, LocalDate.of(2024, 2, 20), 20000.0);
+        ReserveEntity reserve8 = createReserve(tariff3, LocalDate.of(2024, 2, 25), 28000.0);
 
-    reserves.addAll(Arrays.asList(reserve1, reserve2, reserve3, reserve4, reserve5, reserve6,
-            reserve7, reserve8, reserve9, reserve10, reserve11, reserve12));
+        // Marzo: 1 reserva con tarifa1, 1 con tarifa2, 2 con tarifa3
+        ReserveEntity reserve9 = createReserve(tariff1, LocalDate.of(2024, 3, 5), 12000.0);
+        ReserveEntity reserve10 = createReserve(tariff2, LocalDate.of(2024, 3, 15), 21000.0);
+        ReserveEntity reserve11 = createReserve(tariff3, LocalDate.of(2024, 3, 20), 27000.0);
+        ReserveEntity reserve12 = createReserve(tariff3, LocalDate.of(2024, 3, 25), 26000.0);
 
-    when(reserveRepository.getReserveByDate_DateBetween(any(LocalDate.class), any(LocalDate.class)))
-            .thenReturn(reserves);
+        reserves.addAll(Arrays.asList(reserve1, reserve2, reserve3, reserve4, reserve5, reserve6,
+                reserve7, reserve8, reserve9, reserve10, reserve11, reserve12));
 
-    // When
-    byte[] report = reserveService.generateTariffReport(startDate, endDate);
+        when(reserveRepository.getReserveByDate_DateBetween(any(LocalDate.class), any(LocalDate.class)))
+                .thenReturn(reserves);
 
-    // Then
-    assertThat(report).isNotNull();
-    assertThat(report.length).isGreaterThan(0);
+        // When
+        byte[] report = reserveService.generateTariffReport(startDate, endDate);
 
-    // Guardar el reporte para inspección visual
-    java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Reporte_Ingresos_Tarifa", ".xlsx");
-    try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
-        fos.write(report);
+        // Then
+        assertThat(report).isNotNull();
+        assertThat(report.length).isGreaterThan(0);
+
+        // Guardar el reporte para inspección visual
+        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Reporte_Ingresos_Tarifa", ".xlsx");
+        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
+            fos.write(report);
+        }
+
+        System.out.println("Reporte de ingresos por tarifa guardado en: " + tempFile.toAbsolutePath());
+
+        // Validar contenido del Excel
+        try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(report))) {
+            Sheet sheet = workbook.getSheetAt(0);
+            assertThat(sheet).isNotNull();
+
+            // 3 tarifas + 1 fila de totales
+            assertThat(sheet.getLastRowNum()).isEqualTo(4);
+
+            // Verificar encabezados
+            Row headerRow = sheet.getRow(0);
+            assertThat(headerRow.getCell(0).getStringCellValue()).isEqualTo("Número de vueltas o tiempo máximo permitido");
+            assertThat(headerRow.getCell(1).getStringCellValue()).isEqualTo("ENERO");
+            assertThat(headerRow.getCell(2).getStringCellValue()).isEqualTo("FEBRERO");
+            assertThat(headerRow.getCell(3).getStringCellValue()).isEqualTo("MARZO");
+            assertThat(headerRow.getCell(4).getStringCellValue()).isEqualTo("TOTAL");
+
+            // Verificar totales por tarifa
+            Row tariff1Row = sheet.getRow(1);
+            assertThat(tariff1Row.getCell(0).getStringCellValue()).contains("10 vueltas");
+            assertThat(tariff1Row.getCell(1).getNumericCellValue()).isEqualTo(22000.0); // Enero
+            assertThat(tariff1Row.getCell(2).getNumericCellValue()).isEqualTo(15000.0); // Febrero
+            assertThat(tariff1Row.getCell(3).getNumericCellValue()).isEqualTo(12000.0); // Marzo
+            assertThat(tariff1Row.getCell(4).getNumericCellValue()).isEqualTo(49000.0); // Total
+
+            // Verificar totales generales
+            Row totalRow = sheet.getRow(4);
+            assertThat(totalRow.getCell(0).getStringCellValue()).isEqualTo("TOTAL");
+            assertThat(totalRow.getCell(1).getNumericCellValue()).isEqualTo(67000.0); // Total Enero
+            assertThat(totalRow.getCell(2).getNumericCellValue()).isEqualTo(85000.0); // Total Febrero
+            assertThat(totalRow.getCell(3).getNumericCellValue()).isEqualTo(86000.0); // Total Marzo
+            assertThat(totalRow.getCell(4).getNumericCellValue()).isEqualTo(238000.0); // Total General
+        }
     }
-
-    System.out.println("Reporte de ingresos por tarifa guardado en: " + tempFile.toAbsolutePath());
-
-    // Validar contenido del Excel
-    try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(report))) {
-        Sheet sheet = workbook.getSheetAt(0);
-        assertThat(sheet).isNotNull();
-
-        // 3 tarifas + 1 fila de totales
-        assertThat(sheet.getLastRowNum()).isEqualTo(4);
-
-        // Verificar encabezados
-        Row headerRow = sheet.getRow(0);
-        assertThat(headerRow.getCell(0).getStringCellValue()).isEqualTo("Número de vueltas o tiempo máximo permitido");
-        assertThat(headerRow.getCell(1).getStringCellValue()).isEqualTo("ENERO");
-        assertThat(headerRow.getCell(2).getStringCellValue()).isEqualTo("FEBRERO");
-        assertThat(headerRow.getCell(3).getStringCellValue()).isEqualTo("MARZO");
-        assertThat(headerRow.getCell(4).getStringCellValue()).isEqualTo("TOTAL");
-
-        // Verificar totales por tarifa
-        Row tariff1Row = sheet.getRow(1);
-        assertThat(tariff1Row.getCell(0).getStringCellValue()).contains("10 vueltas");
-        assertThat(tariff1Row.getCell(1).getNumericCellValue()).isEqualTo(22000.0); // Enero
-        assertThat(tariff1Row.getCell(2).getNumericCellValue()).isEqualTo(15000.0); // Febrero
-        assertThat(tariff1Row.getCell(3).getNumericCellValue()).isEqualTo(12000.0); // Marzo
-        assertThat(tariff1Row.getCell(4).getNumericCellValue()).isEqualTo(49000.0); // Total
-
-        // Verificar totales generales
-        Row totalRow = sheet.getRow(4);
-        assertThat(totalRow.getCell(0).getStringCellValue()).isEqualTo("TOTAL");
-        assertThat(totalRow.getCell(1).getNumericCellValue()).isEqualTo(67000.0); // Total Enero
-        assertThat(totalRow.getCell(2).getNumericCellValue()).isEqualTo(85000.0); // Total Febrero
-        assertThat(totalRow.getCell(3).getNumericCellValue()).isEqualTo(86000.0); // Total Marzo
-        assertThat(totalRow.getCell(4).getNumericCellValue()).isEqualTo(238000.0); // Total General
-    }
-}
 
     @Test
     void testGenerateGroupSizeReport_SuccessWithMultipleMonths() throws IOException {
@@ -924,14 +921,14 @@ void testGenerateTariffReport_SuccessWithMultipleMonths() throws IOException {
     private ReserveEntity createReserve(TariffEntity tariff, LocalDate date, double finalPrice) {
         ReserveEntity reserve = new ReserveEntity();
         reserve.setTariff(tariff);
-        reserve.setDate(java.sql.Date.valueOf(date));
+        reserve.setDate(date);
         reserve.setFinalPrice(finalPrice);
         return reserve;
     }
 
     private ReserveEntity createReserveWithGroup(int groupSize, LocalDate date, double finalPrice) {
         ReserveEntity reserve = new ReserveEntity();
-        reserve.setDate(java.sql.Date.valueOf(date));
+        reserve.setDate(date);
         reserve.setFinalPrice(finalPrice);
 
         // Crear grupo de usuarios del tamaño especificado

@@ -8,12 +8,14 @@ import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
 import Paper from "@mui/material/Paper";
 import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useNavigate } from "react-router-dom";
 
 const SpecialDayList = () => {
   const [specialDays, setSpecialDays] = useState([]);
-  const [newDate, setNewDate] = useState("");
-  const [description, setDescription] = useState("");
+  const navigate = useNavigate();
+
 
   const loadSpecialDays = () => {
     specialDayService
@@ -26,25 +28,9 @@ const SpecialDayList = () => {
       });
   };
 
-  // Agregar un nuevo día especial
-  const addSpecialDay = () => {
-    if (!newDate || !description) {
-      alert("Por favor, complete todos los campos.");
-      return;
-    }
-
-    const specialDay = { date: newDate, description };
-    specialDayService
-      .createSpecialDay(specialDay)
-      .then(() => {
-        loadSpecialDays();
-        setNewDate("");
-        setDescription("");
-      })
-      .catch((error) => {
-        console.error("Error al agregar el día especial:", error);
-      });
-  };
+  useEffect(() => {
+    loadSpecialDays();
+  }, []);
 
   // Eliminar un día especial
   const deleteSpecialDay = (id) => {
@@ -63,15 +49,29 @@ const SpecialDayList = () => {
     }
   };
 
-  useEffect(() => {
-    loadSpecialDays();
-  }, []);
+  // Navegar a la página de edición
+  const handleEdit = (id) => {
+    navigate(`/specialdays/edit/${id}`);
+  };
+
+  // Navegar a la página de agregar
+  const handleAdd = () => {
+    navigate("/specialdays/add");
+  };
 
   return (
     <TableContainer component={Paper} sx={{ backgroundColor: "rgba(30, 30, 47, 0.9)" }}>
       <h3 style={{ color: "var(--accent-color)", textAlign: "center" }}>
-        Días Especiales
+        Dias Especiales
       </h3>
+      <Button 
+        variant="contained" 
+        color="primary" 
+        onClick={handleAdd} 
+        sx={{ margin: "1rem" }}
+        > 
+        Agregar Dia Especial
+      </Button>
       <Table>
         <TableHead>
           <TableRow>
@@ -81,7 +81,7 @@ const SpecialDayList = () => {
             <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
               Descripción
             </TableCell>
-            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
+            <TableCell  align="center" sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
               Acciones
             </TableCell>
           </TableRow>
@@ -91,11 +91,31 @@ const SpecialDayList = () => {
             <TableRow key={day.id}>
               <TableCell sx={{ color: "var(--text-color)" }}>{day.date}</TableCell>
               <TableCell sx={{ color: "var(--text-color)" }}>{day.description}</TableCell>
-              <TableCell>
+              <TableCell align="center">
                 <Button
                   variant="contained"
-                  color="error"
+                  sx={{
+                    backgroundColor: "var(--primary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": {backgroundColor: "var(--hover-color)"},
+                  }}
+                  size="small"
+                  onClick={() => handleEdit(day.id)}
+                  startIcon={<EditIcon />}
+                >
+                  Editar
+                </Button>
+                <Button
+                  variant="contained"
+                  sx={{
+                    backgroundColor: "var(--secondary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)"},
+                  }}
+                  size="small"
                   onClick={() => deleteSpecialDay(day.id)}
+                  style={{ marginLeft: "0.5rem" }}
+                  startIcon={<DeleteIcon />}
                 >
                   Eliminar
                 </Button>
@@ -104,28 +124,6 @@ const SpecialDayList = () => {
           ))}
         </TableBody>
       </Table>
-      <TextField
-        label="Nueva Fecha"
-        type="date"
-        value={newDate}
-        onChange={(e) => setNewDate(e.target.value)}
-        InputLabelProps={{ shrink: true }}
-        style={{ marginTop: "1rem", marginRight: "1rem" }}
-      />
-      <TextField
-        label="Descripción"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        style={{ marginTop: "1rem", marginRight: "1rem" }}
-      />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={addSpecialDay}
-        style={{ marginTop: "1rem" }}
-      >
-        Agregar Día Especial
-      </Button>
     </TableContainer>
   );
 };

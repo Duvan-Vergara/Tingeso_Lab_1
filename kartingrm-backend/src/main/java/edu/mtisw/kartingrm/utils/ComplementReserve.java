@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Date;
+import java.time.ZoneId;
 import java.util.List;
 
 @Service
@@ -67,11 +67,12 @@ public class ComplementReserve {
         return date.getDayOfWeek().getValue() == 6 || date.getDayOfWeek().getValue() == 7;
     }
 
-    public boolean isBirthday(UserEntity user, Date date) {
-        if(user.getBirthDate() == null || user.getBirthDate().getMonth() != date.getMonth()) {
+    public boolean isBirthday(UserEntity user, LocalDate date) {
+        if(user.getBirthDate() == null) {
             return false;
         }
-        return date.getDay() == user.getBirthDate().getDay();
+        LocalDate birthDate = user.getBirthDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        return birthDate.getMonth() == date.getMonth() && birthDate.getDayOfMonth() == date.getDayOfMonth();
     }
 
 }

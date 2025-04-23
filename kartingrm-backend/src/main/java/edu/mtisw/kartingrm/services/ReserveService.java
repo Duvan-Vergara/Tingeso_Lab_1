@@ -15,9 +15,7 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
-import java.time.LocalDate;
-import java.time.YearMonth;
-import java.time.ZoneId;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
@@ -61,7 +59,7 @@ public class ReserveService {
             TariffEntity calculatedTariff = calculateTariffForReserve(reserve.getBegin(), reserve.getFinish(), availableTariffs);
             reserve.setTariff(calculatedTariff);
             // Ajustar la hora de finalización según la tarifa calculada
-            reserve.setFinish(Date.from(reserve.getBegin().toInstant().plusSeconds(calculatedTariff.getMaxMinutes() * 60)));
+            reserve.setFinish(reserve.getBegin().plusMinutes(calculatedTariff.getMaxMinutes()));
         }
         // Guardar la reserva
         return reserveRepository.save(reserve);
@@ -93,11 +91,11 @@ public class ReserveService {
         return IntStream.range(0, 7)
                 .mapToObj(i -> startDate.plusDays(i))
                 .map(d -> reserves.stream()
-                        .filter(r -> r.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().equals(d))
+                        .filter(r -> r.getDate().equals(d))
                         .map(r -> {
                             UserEntity user = r.getGroup().iterator().next(); // Obtener el primer usuario
-                            String startTime = r.getBegin().toInstant().atZone(ZoneId.systemDefault()).toLocalTime().format(timeFormatter);
-                            String endTime = r.getFinish().toInstant().atZone(ZoneId.systemDefault()).toLocalTime().format(timeFormatter);
+                            String startTime = r.getBegin().format(timeFormatter);
+                            String endTime = r.getFinish().format(timeFormatter);
                             return user.getName() + " (" + startTime + " - " + endTime + ")";
                         })
                         .collect(Collectors.toList()))
@@ -118,7 +116,7 @@ public class ReserveService {
     }
 
     public double getTariffForDate(ReserveEntity reserve) {
-        LocalDate reserveDate = reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+        LocalDate reserveDate = reserve.getDate();
         if (complementReserve.isSpecialDay(reserveDate)) {
             return reserve.getTariff().getHolidayPrice();
         } else if (complementReserve.isWeekend(reserveDate)) {
@@ -128,14 +126,14 @@ public class ReserveService {
         }
     }
 
-    public TariffEntity calculateTariffForReserve(Date startTime, Date endTime, List<TariffEntity> availableTariffs) {
-        // Validar que las tarifas disponibles no estén vacías
+    public TariffEntity calculateTariffForReserve(LocalTime startTime, LocalTime endTime, List<TariffEntity> availableTariffs) {
         if (availableTariffs == null || availableTariffs.isEmpty()) {
             throw new IllegalArgumentException("No hay tarifas disponibles para calcular.");
         }
 
         // Calcular la duración en minutos
-        long durationInMinutes = (endTime.getTime() - startTime.getTime()) / (1000 * 60);
+        long durationInMinutes = java.time.Duration.between(startTime, endTime).toMinutes();
+
 
         // Inicializar las tarifas mínima y máxima
         TariffEntity shortestTariff = null;
@@ -198,10 +196,8 @@ public class ReserveService {
         Row infoRow = sheet.createRow(1);
         infoRow.createCell(0).setCellValue(reserve.getId());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM HH:mm");
-        String formattedDateTime = reserve.getDate().toInstant()
-                .atZone(ZoneId.systemDefault())
-                .toLocalDateTime()
-                .format(formatter);
+        LocalDateTime dateTime = LocalDateTime.of(reserve.getDate(), reserve.getBegin());
+        String formattedDateTime = dateTime.format(formatter);
         infoRow.createCell(1).setCellValue(formattedDateTime);
         infoRow.createCell(2).setCellValue(reserve.getTariff().getLaps() + " vueltas / " + reserve.getTariff().getMaxMinutes() + " minutos");
         infoRow.createCell(3).setCellValue(reserve.getGroup().size());
@@ -228,7 +224,7 @@ public class ReserveService {
             Row row = sheet.createRow(rowNum++);
             double basePrice = reserve.getTariff().getRegularPrice();
             double groupDiscount = complementReserve.calculateGroupSizeDiscount(reserve.getGroup().size());
-            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate().getMonthValue());
+            List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), reserve.getDate().getMonthValue());
             double frequentDiscount = complementReserve.calculateFrequentCustomerDiscount(userReserves);
             double bestDiscount = Math.max(groupDiscount, frequentDiscount);
             double finalAmount = basePrice * (1 - bestDiscount);
@@ -363,8 +359,6 @@ public class ReserveService {
         return javaMailSender;
     }
 
-    /*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
-
     private List<YearMonth> getMonthsBetween(LocalDate startDate, LocalDate endDate) {
         List<YearMonth> months = new ArrayList<>();
         YearMonth start = YearMonth.from(startDate);
@@ -384,9 +378,7 @@ public class ReserveService {
     private double calculateIncome(List<ReserveEntity> reserves, TariffEntity tariff, YearMonth month) {
         return reserves.stream()
                 .filter(r -> {
-                    // Convertir java.sql.Date a LocalDate directamente
-                    LocalDate reserveDate = ((java.sql.Date) r.getDate()).toLocalDate();
-                    YearMonth reserveMonth = YearMonth.from(reserveDate);
+                    YearMonth reserveMonth = YearMonth.from(r.getDate());
                     return reserveMonth.equals(month) &&
                             tariff.getId().equals(r.getTariff().getId());
                 })
@@ -398,8 +390,7 @@ public class ReserveService {
         return reserves.stream()
                 .filter(r -> {
                     // Convertir java.sql.Date a LocalDate directamente
-                    LocalDate reserveDate = ((java.sql.Date) r.getDate()).toLocalDate();
-                    YearMonth reserveMonth = YearMonth.from(reserveDate);
+                    YearMonth reserveMonth = YearMonth.from(r.getDate());
                     int groupSize = r.getGroup().size();
                     return reserveMonth.equals(month) &&
                             groupSize >= minSize && groupSize <= maxSize;

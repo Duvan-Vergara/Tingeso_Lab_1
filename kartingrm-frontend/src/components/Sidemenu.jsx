@@ -63,6 +63,14 @@ export default function Sidemenu({ open, toggleDrawer }) {
           </ListItemIcon>
           <ListItemText primary="Tarifas" />
         </ListItemButton>
+
+        <ListItemButton onClick={() => navigate("/reports/generate")}>
+          <ListItemIcon>
+            <PaidIcon sx={{ color: "var(--accent-color)" }} />
+          </ListItemIcon>
+          <ListItemText primary="Generar Reporte" />
+        </ListItemButton>
+
       </List>
       <Divider sx={{ backgroundColor: "var(--border-color)" }} />
     </Box>
