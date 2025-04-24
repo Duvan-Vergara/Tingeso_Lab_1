@@ -66,6 +66,18 @@ const ReserveList = () => {
             });
     };
 
+    const handleSendPaymentReceiptV2 = (id) => {
+        reserveService
+            .sendPaymentReceiptV2(id)
+            .then(() => {
+                alert("Comprobante de pago enviado con éxito (versión 2).");
+            })
+            .catch((error) => {
+                console.error("Error al enviar el comprobante de pago (versión 2):", error);
+                alert("Error al enviar el comprobante de pago (versión 2).");
+            });
+    };
+
 
     return (
         <TableContainer component={Paper}>
@@ -142,6 +154,15 @@ const ReserveList = () => {
                                     style={{ marginLeft: "0.5rem" }}
                                 >
                                     Enviar Comprobante
+                                </Button>
+                                <Button
+                                    variant="contained"
+                                    color="secondary"
+                                    size="small"
+                                    onClick={() => handleSendPaymentReceiptV2(reserve.id)}
+                                    style={{ marginLeft: "0.5rem" }}
+                                >
+                                    Enviar Comprobante 2
                                 </Button>
                             </TableCell>
                         </TableRow>

@@ -1,6 +1,7 @@
 package edu.mtisw.kartingrm.controllers;
 
 import edu.mtisw.kartingrm.entities.ReserveEntity;
+import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.services.ReserveService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -89,9 +90,35 @@ public class ReserveController {
         }
     }
 
+    @GetMapping("/{id}/payment-receipt-v2")
+    public ResponseEntity<?> sendPaymentReceiptV2(@PathVariable Long id) {
+        try {
+            ReserveEntity reserve = reserveService.getReserveById(id);
+            reserveService.sendPaymentReceipts_2(reserve);
+            return ResponseEntity.ok().body("Comprobante de pago enviado correctamente (versión 2)");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al enviar el comprobante de pago (versión 2): " + e.getMessage());
+        }
+    }
+
     @PostMapping("/calculate-price")
     public ResponseEntity<Double> calculatePrice(@RequestBody ReserveEntity reserve) {
+        System.out.println("Datos recibidos para calcular el precio");
+        System.out.println("Fecha: " + reserve.getDate());
+        System.out.println("Hora de inicio: " + reserve.getBegin());
+        System.out.println("Hora de fin: " + reserve.getFinish());
+        System.out.println("Tarifa: " + reserve.getTariff());
+        System.out.println("Usuarios en el grupo: " + (reserve.getGroup() != null ? reserve.getGroup().size() : "null"));
+        if (reserve.getTariff() == null || reserve.getGroup() == null || reserve.getGroup().isEmpty()) {
+            System.out.println("Datos incompletos para calcular el precio");
+            return ResponseEntity.badRequest().body(0.0);
+        }
+        for (UserEntity user : reserve.getGroup()) {
+            System.out.println("Usuario en el grupo: " + user.getRut());
+        }
         double finalPrice = reserveService.calculateFinalPrice(reserve, LocalDate.now().getMonthValue());
+        System.out.println("Final Price: " + finalPrice);
         return ResponseEntity.ok(finalPrice);
     }
 

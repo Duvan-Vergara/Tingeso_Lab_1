@@ -34,6 +34,7 @@ const UserList = () => {
   };
 
   useEffect(() => {
+    console.log("Cargando listado de usuarios.");
     init();
   }, []);
 

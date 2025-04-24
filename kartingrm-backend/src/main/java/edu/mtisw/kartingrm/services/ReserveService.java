@@ -28,6 +28,8 @@ import com.itextpdf.text.Document;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 public class ReserveService {
@@ -117,6 +119,7 @@ public class ReserveService {
 
     public double getTariffForDate(ReserveEntity reserve) {
         LocalDate reserveDate = reserve.getDate();
+        System.out.println("Fecha de reserva: " + reserveDate);
         if (complementReserve.isSpecialDay(reserveDate)) {
             return reserve.getTariff().getHolidayPrice();
         } else if (complementReserve.isWeekend(reserveDate)) {
@@ -158,23 +161,27 @@ public class ReserveService {
     public double calculateFinalPrice(ReserveEntity reserve, int month) {
         double totalPrice = 0;
         int birthdayLimit = complementReserve.calculateBirthdayLimit(reserve.getGroup().size());
+        System.out.println("Birthday Limit: " + birthdayLimit);
+        System.out.println("Tariff: " + reserve.getTariff());
         double basePrice = getTariffForDate(reserve);
+        System.out.println("Base Price: " + basePrice);
 
         for (UserEntity user : reserve.getGroup()) {
             List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), month);
 
             double bestDiscount = complementReserve.calculateBestDiscount(reserve, userReserves);
+            System.out.println("Best Discount: " + bestDiscount);
 
             // Descuento por cumpleaños
             if (complementReserve.isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
                 bestDiscount = Math.max(bestDiscount, 0.50);
                 birthdayLimit--;
+                System.out.println("descuento por cumpleaños aplicado a " + user.getName());
             }
-
             // Aplicar el descuento al precio base por usuario
             totalPrice += basePrice * (1 - bestDiscount);
+            System.out.println("Total Price for " + user.getName() + ": " + totalPrice);
         }
-
         return totalPrice;
     }
 
@@ -252,24 +259,12 @@ public class ReserveService {
         totalReserveRow.createCell(5).setCellValue(iva);
         totalReserveRow.createCell(6).setCellValue(totalAmount + iva);
 
-        // Crear un archivo temporal para guardar el Excel
-        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Comprobante_de_Pago", ".xlsx");
-        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
-            workbook.write(fos);
-        }
-        workbook.close();
-
-        System.out.println("Archivo Excel guardado temporalmente en: " + tempFile.toAbsolutePath());
 
         // Escribir el archivo Excel a un ByteArrayOutputStream para retornarlo
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        try (FileInputStream fis = new FileInputStream(tempFile.toFile())) {
-            byte[] buffer = new byte[1024];
-            int bytesRead;
-            while ((bytesRead = fis.read(buffer)) != -1) {
-                bos.write(buffer, 0, bytesRead);
-            }
-        }
+        workbook.write(bos);
+        workbook.close();
+
         return bos.toByteArray();
     }
 
@@ -317,12 +312,10 @@ public class ReserveService {
                 }
             }
         }
-
         // Agregar la tabla al documento PDF
         document.add(table);
         document.close();
         workbook.close();
-
         return bos.toByteArray();
     }
 
@@ -353,6 +346,33 @@ public class ReserveService {
                     "Comprobante_de_Pago.pdf"
             );
         }
+    }
+
+    public void sendPaymentReceipts_2(ReserveEntity reserve) throws IOException, DocumentException {
+        byte[] excelData = generatePaymentReceipt(reserve);
+        byte[] pdfData = convertExcelToPdf(excelData);
+
+        // Crear un pool de hilos para enviar correos en paralelo
+        ExecutorService executorService = Executors.newFixedThreadPool(5); // Ajusta el tamaño del pool según tus necesidades
+
+        for (UserEntity user : reserve.getGroup()) {
+            executorService.submit(() -> {
+                try {
+                    sendEmailWithAttachment(
+                            user.getEmail(),
+                            "Comprobante de Pago",
+                            "Adjunto encontrará el comprobante de pago de su reserva.",
+                            pdfData,
+                            "Comprobante_de_Pago.pdf"
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace(); // Manejar errores de envío
+                }
+            });
+        }
+
+        // Cerrar el pool de hilos
+        executorService.shutdown();
     }
 
     public JavaMailSender createJavaMailSender() {

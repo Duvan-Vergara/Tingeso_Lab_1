@@ -42,6 +42,10 @@ const sendPaymentReceipt = (id) => {
     return httpClient.get(`${API_URL}${id}/payment-receipt`);
 };
 
+const sendPaymentReceiptV2 = (id) => {
+    return httpClient.get(`${API_URL}${id}/payment-receipt-v2`);
+};
+
 const generateTariffReport = (startDate, endDate) => {
     return httpClient.get(`${API_URL}report/tariff`, {
         params: { startDate, endDate },
@@ -72,7 +76,22 @@ export default {
     listReservesByMonth,
     listReservesByWeek,
     sendPaymentReceipt,
+    sendPaymentReceiptV2,
     generateTariffReport,
     generateGroupSizeReport,
     calculateFinalPrice,
 };
+
+/*
+@GetMapping("/{id}/payment-receipt-v2")
+    public ResponseEntity<?> sendPaymentReceiptV2(@PathVariable Long id) {
+        try {
+            ReserveEntity reserve = reserveService.getReserveById(id);
+            reserveService.sendPaymentReceipts_2(reserve);
+            return ResponseEntity.ok().body("Comprobante de pago enviado correctamente (versión 2)");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al enviar el comprobante de pago (versión 2): " + e.getMessage());
+        }
+    }
+*/
