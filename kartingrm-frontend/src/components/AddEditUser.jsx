@@ -10,9 +10,9 @@ import SaveIcon from "@mui/icons-material/Save";
 const AddEditUser = () => {
   const [rut, setRut] = useState("");
   const [name, setName] = useState("");
-  const[lastName, setLastName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const[birthDate, setBirthDate] = useState("");
+  const [birthDate, setBirthDate] = useState("");
   const [titleUserForm, setTitleUserForm] = useState("");
   const { id } = useParams();
   const navigate = useNavigate();
@@ -20,7 +20,7 @@ const AddEditUser = () => {
   const saveUser = (e) => {
     e.preventDefault();
 
-    const user = { rut, name, lastName, email, birthDate, id };
+    const user = { rut, name, lastName, email, birthDate};
     if (id) {
       //Actualizar Datos Usuario
       userService
@@ -127,7 +127,7 @@ const AddEditUser = () => {
 
         <FormControl fullWidth>
           <TextField
-            id="lasrtName"
+            id="lastName"
             label="LastName"
             value={lastName}
             variant="standard"

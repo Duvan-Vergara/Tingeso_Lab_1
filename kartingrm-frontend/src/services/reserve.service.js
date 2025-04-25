@@ -81,17 +81,3 @@ export default {
     generateGroupSizeReport,
     calculateFinalPrice,
 };
-
-/*
-@GetMapping("/{id}/payment-receipt-v2")
-    public ResponseEntity<?> sendPaymentReceiptV2(@PathVariable Long id) {
-        try {
-            ReserveEntity reserve = reserveService.getReserveById(id);
-            reserveService.sendPaymentReceipts_2(reserve);
-            return ResponseEntity.ok().body("Comprobante de pago enviado correctamente (versión 2)");
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Error al enviar el comprobante de pago (versión 2): " + e.getMessage());
-        }
-    }
-*/

@@ -129,3 +129,26 @@ const SpecialDayList = () => {
 };
 
 export default SpecialDayList;
+
+/*
+@Entity
+@Table(name = "special_days")
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class SpecialDayEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(unique = true, nullable = false)
+    private Long id;
+
+    @Column(nullable = false, name = "date")
+    private LocalDate date;
+
+    @Column(nullable = false, name = "description")
+    private String description;
+
+}
+
+*/

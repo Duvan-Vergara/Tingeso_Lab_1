@@ -7,11 +7,14 @@ import Button from "@mui/material/Button";
 import SaveIcon from "@mui/icons-material/Save";
 
 const AddEditTariff = () => {
-  const [laps, setLaps] = useState("");
-  const [maxMinutes, setMaxMinutes] = useState("");
-  const [regularPrice, setRegularPrice] = useState("");
-  const [weekendPrice, setWeekendPrice] = useState("");
-  const [holidayPrice, setHolidayPrice] = useState("");
+  const [laps, setLaps] = useState(0);
+  const [maxMinutes, setMaxMinutes] = useState(0);
+  const [regularPrice, setRegularPrice] = useState(0.0);
+  const [weekendPrice, setWeekendPrice] = useState(0);
+  const [holidayPrice, setHolidayPrice] = useState(0);
+  const [weekendDiscountPercentage, setWeekendDiscountPercentage] = useState(0.0);
+  const [holidayDiscountPercentage, setHolidayDiscountPercentage] = useState(0.0);
+  const [totalDuration, setTotalDuration] = useState(0);
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -26,6 +29,9 @@ const AddEditTariff = () => {
           setRegularPrice(tariff.regularPrice);
           setWeekendPrice(tariff.weekendPrice);
           setHolidayPrice(tariff.holidayPrice);
+          setWeekendDiscountPercentage(tariff.weekendDiscountPercentage);
+          setHolidayDiscountPercentage(tariff.holidayDiscountPercentage);
+          setTotalDuration(tariff.totalDuration);
         })
         .catch((error) => {
           console.error("Error al cargar la tarifa:", error);
@@ -35,8 +41,7 @@ const AddEditTariff = () => {
 
   const saveTariff = (e) => {
     e.preventDefault();
-    const tariff = { laps, maxMinutes, regularPrice, weekendPrice, holidayPrice };
-
+    const tariff = { laps, maxMinutes, regularPrice, totalDuration, weekendDiscountPercentage, holidayDiscountPercentage, weekendPrice, holidayPrice };
     if (id) {
       tariffService
         .saveTariff({ ...tariff, id })
@@ -98,16 +103,23 @@ const AddEditTariff = () => {
           margin="normal"
         />
         <TextField
-          label="Precio Fin de Semana"
-          value={weekendPrice}
-          onChange={(e) => setWeekendPrice(e.target.value)}
+          label="Duración Total (minutos)"
+          value={totalDuration}
+          onChange={(e) => setTotalDuration(e.target.value)}
           fullWidth
           margin="normal"
         />
         <TextField
-          label="Precio Feriado"
-          value={holidayPrice}
-          onChange={(e) => setHolidayPrice(e.target.value)}
+          label="% Descuento Fin de Semana"
+          value={weekendDiscountPercentage}
+          onChange={(e) => setWeekendDiscountPercentage(e.target.value)}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="% Aumento Días Especiales"
+          value={holidayIncreasePercentage}
+          onChange={(e) => setHolidayIncreasePercentage(e.target.value)}
           fullWidth
           margin="normal"
         />
