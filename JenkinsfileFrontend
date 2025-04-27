@@ -1,0 +1,35 @@
+pipeline{
+    agent any
+    stages{
+        stage("Install Dependencies") {
+            steps {
+                dir("kartingrm-frontend") {
+                    bat "npm install"
+                }
+            }
+        }
+        stage("Build dist"){
+            steps{
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'PipeLine_1_Github', url: 'https://github.com/Duvan-Vergara/Tingeso_Lab_1']])
+                dir("kartingrm-frontend"){
+                    bat "npm run build"
+                }
+            }
+        }
+        stage("Build Docker Image"){
+            steps{
+                dir("kartingrm-frontend"){
+                    bat "docker build -t duvanvergara/frontend:latest ."
+                }
+            }
+        }
+        stage("Push Docker Image"){
+            steps{
+                withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
+                    bat "docker login -u duvanvergara -p ${dckpass}"
+                }
+                bat "docker push duvanvergara/frontend:latest"
+            }
+        }
+    }
+}
