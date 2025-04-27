@@ -22,7 +22,7 @@ pipeline{
         stage("Build Docker Image"){
             steps{
                 dir("kartingrm-backend"){
-                    bat "docker build -t duvanvergara/proyecto_docker ."
+                    bat "docker build -t duvanvergara/backend:latest ."
                 }
             }
         }
@@ -31,7 +31,7 @@ pipeline{
                 withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                     bat "docker login -u duvanvergara -p ${dckpass}"
                 }
-                bat "docker push duvanvergara/proyecto_docker"
+                bat "docker push duvanvergara/backend:latest"
             }
         }
     }
