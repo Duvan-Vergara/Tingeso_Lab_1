@@ -22,26 +22,20 @@ public class UserController {
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<UserEntity> getEmployeeById(@PathVariable Long id) {
+	public ResponseEntity<UserEntity> getUserById(@PathVariable Long id) {
 		UserEntity user = userService.getUserById(id);
 		return ResponseEntity.ok(user);
 	}
 
 	@PostMapping("/")
-	public ResponseEntity<UserEntity> saveEmployee(@RequestBody UserEntity employee) {
-		UserEntity userNew = userService.saveUser(employee);
+	public ResponseEntity<UserEntity> saveUser(@RequestBody UserEntity user) {
+		UserEntity userNew = userService.saveUser(user);
 		return ResponseEntity.ok(userNew);
 	}
 
-	@PutMapping("/")
-	public ResponseEntity<UserEntity> updateEmployee(@RequestBody UserEntity employee){
-		UserEntity userUpdated = userService.updateUser(employee);
-		return ResponseEntity.ok(userUpdated);
-	}
-
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Boolean> deleteEmployeeById(@PathVariable Long id) throws Exception {
-		var isDeleted = userService.deleteUser(id);
+	public ResponseEntity<Boolean> deleteUserById(@PathVariable Long id) throws Exception {
+		userService.deleteUser(id);
 		return ResponseEntity.noContent().build();
 	}
 }

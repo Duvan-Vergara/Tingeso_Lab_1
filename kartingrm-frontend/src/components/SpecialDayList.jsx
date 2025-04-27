@@ -33,7 +33,7 @@ const SpecialDayList = () => {
   }, []);
 
   // Eliminar un día especial
-  const deleteSpecialDay = (id) => {
+  const handleDelete = (id) => {
     const confirmDelete = window.confirm(
       "¿Está seguro de que desea eliminar este día especial?"
     );
@@ -61,15 +61,18 @@ const SpecialDayList = () => {
 
   return (
     <TableContainer component={Paper} sx={{ backgroundColor: "rgba(30, 30, 47, 0.9)" }}>
-      <h3 style={{ color: "var(--accent-color)", textAlign: "center" }}>
-        Dias Especiales
+      <h3 style={{ color: "var(--text-optional-color)", textAlign: "center" }}>
+        Lista de Dias Especiales
       </h3>
-      <Button 
-        variant="contained" 
-        color="primary" 
-        onClick={handleAdd} 
-        sx={{ margin: "1rem" }}
-        > 
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "var(--primary-color)",
+          color: "var(--text-color)",
+          "&:hover": { backgroundColor: "var(--hover-color)" },
+        }}
+        onClick={handleAdd}
+      >
         Agregar Dia Especial
       </Button>
       <Table>
@@ -81,8 +84,8 @@ const SpecialDayList = () => {
             <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
               Descripción
             </TableCell>
-            <TableCell  align="center" sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
-              Acciones
+            <TableCell align="center" sx={{ color: "var(--text-color)", fontWeight: "bold" }}>
+              Operaciones
             </TableCell>
           </TableRow>
         </TableHead>
@@ -97,7 +100,7 @@ const SpecialDayList = () => {
                   sx={{
                     backgroundColor: "var(--primary-color)",
                     color: "var(--text-color)",
-                    "&:hover": {backgroundColor: "var(--hover-color)"},
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
                   }}
                   size="small"
                   onClick={() => handleEdit(day.id)}
@@ -110,10 +113,10 @@ const SpecialDayList = () => {
                   sx={{
                     backgroundColor: "var(--secondary-color)",
                     color: "var(--text-color)",
-                    "&:hover": { backgroundColor: "var(--hover-color)"},
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
                   }}
                   size="small"
-                  onClick={() => deleteSpecialDay(day.id)}
+                  onClick={() => handleDelete(day.id)}
                   style={{ marginLeft: "0.5rem" }}
                   startIcon={<DeleteIcon />}
                 >
@@ -129,26 +132,3 @@ const SpecialDayList = () => {
 };
 
 export default SpecialDayList;
-
-/*
-@Entity
-@Table(name = "special_days")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class SpecialDayEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false)
-    private Long id;
-
-    @Column(nullable = false, name = "date")
-    private LocalDate date;
-
-    @Column(nullable = false, name = "description")
-    private String description;
-
-}
-
-*/

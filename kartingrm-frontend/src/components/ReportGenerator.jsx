@@ -95,14 +95,18 @@ const ReportGenerator = () => {
 
   return (
     <div style={{ textAlign: "center", marginTop: "2rem" }}>
-      <Typography variant="h5" style={{ marginBottom: "1rem", color: "var(--accent-color)" }}>
+      <Typography variant="h5" style={{ marginBottom: "1rem", color: "var(--text-optional-color)" }}>
         Generar Reporte
       </Typography>
 
       <div style={{ marginBottom: "1rem" }}>
         <Button
           variant="contained"
-          color="primary"
+          sx={{
+            backgroundColor: "var(--primary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
           onClick={handleOpenStartMenu}
           style={{ marginRight: "1rem" }}
         >
@@ -132,7 +136,11 @@ const ReportGenerator = () => {
 
         <Button
           variant="contained"
-          color="primary"
+          sx={{
+            backgroundColor: "var(--secondary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
           onClick={handleOpenEndMenu}
         >
           Seleccionar Fecha de Fin

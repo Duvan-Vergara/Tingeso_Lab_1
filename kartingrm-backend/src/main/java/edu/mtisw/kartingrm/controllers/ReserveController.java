@@ -48,15 +48,9 @@ public class ReserveController {
         return ResponseEntity.ok(reserves);
     }
 
-    @PutMapping("/")
-    public ResponseEntity<ReserveEntity> updateExtraHours(@RequestBody ReserveEntity extraHours){
-        ReserveEntity extraHoursUpdated = reserveService.updateReserve(extraHours);
-        return ResponseEntity.ok(extraHoursUpdated);
-    }
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<Boolean> deleteExtraHoursById(@PathVariable Long id) throws Exception {
-        var isDeleted = reserveService.deleteReserveById(id);
+    public ResponseEntity<Boolean> deleteReserveById(@PathVariable Long id) throws Exception {
+        reserveService.deleteReserveById(id);
         return ResponseEntity.noContent().build();
     }
 
@@ -104,21 +98,10 @@ public class ReserveController {
 
     @PostMapping("/calculate-price")
     public ResponseEntity<Double> calculatePrice(@RequestBody ReserveEntity reserve) {
-        System.out.println("Datos recibidos para calcular el precio");
-        System.out.println("Fecha: " + reserve.getDate());
-        System.out.println("Hora de inicio: " + reserve.getBegin());
-        System.out.println("Hora de fin: " + reserve.getFinish());
-        System.out.println("Tarifa: " + reserve.getTariff());
-        System.out.println("Usuarios en el grupo: " + (reserve.getGroup() != null ? reserve.getGroup().size() : "null"));
         if (reserve.getTariff() == null || reserve.getGroup() == null || reserve.getGroup().isEmpty()) {
-            System.out.println("Datos incompletos para calcular el precio");
             return ResponseEntity.badRequest().body(0.0);
         }
-        for (UserEntity user : reserve.getGroup()) {
-            System.out.println("Usuario en el grupo: " + user.getRut());
-        }
         double finalPrice = reserveService.calculateFinalPrice(reserve, LocalDate.now().getMonthValue());
-        System.out.println("Final Price: " + finalPrice);
         return ResponseEntity.ok(finalPrice);
     }
 

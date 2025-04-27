@@ -71,8 +71,7 @@ public class ComplementReserve {
         if(user.getBirthDate() == null) {
             return false;
         }
-        LocalDate birthDate = user.getBirthDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
-        return birthDate.getMonth() == date.getMonth() && birthDate.getDayOfMonth() == date.getDayOfMonth();
+        return user.getBirthDate().getMonth() == date.getMonth() && user.getBirthDate().getDayOfMonth() == date.getDayOfMonth();
     }
 
 }

@@ -22,11 +22,6 @@ public class TariffService {
         return tariffRepository.save(tariff);
     }
 
-    public TariffEntity updateTariff(TariffEntity tariff) {
-        calculateAdjustedPrices(tariff);
-        return tariffRepository.save(tariff);
-    }
-
     public TariffEntity getTariffById(Long id){
         return tariffRepository.findById(id).get();
     }

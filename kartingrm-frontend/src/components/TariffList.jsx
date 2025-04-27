@@ -19,7 +19,7 @@ const TariffList = () => {
   // Cargar tarifas desde el backend
   const loadTariffs = () => {
     tariffService
-      .listTariffs()
+      .getAllTariffs()
       .then((response) => {
         setTariffs(response.data);
       })
@@ -55,13 +55,22 @@ const TariffList = () => {
     navigate(`/tariff/edit/${id}`);
   };
 
+  // Navegar a la página de agregar
+  const handleAdd = () => {
+    navigate("/tariff/add");
+  };
+
   return (
     <TableContainer component={Paper} sx={{ backgroundColor: "rgba(30, 30, 47, 0.9)" }}>
-      <h3 style={{ color: "var(--accent-color)", textAlign: "center" }}>Lista de Tarifas</h3>
+      <h3 style={{ color: "var(--text-optional-color)", textAlign: "center" }}>Lista de Tarifas</h3>
       <Button
         variant="contained"
-        color="primary"
-        onClick={() => navigate("/tariff/add")}
+        sx={{
+          backgroundColor: "var(--primary-color)",
+          color: "var(--text-color)",
+          "&:hover": { backgroundColor: "var(--hover-color)" },
+        }}
+        onClick={() => handleAdd}
         style={{ margin: "1rem" }}
       >
         Añadir Tarifa
@@ -99,30 +108,38 @@ const TariffList = () => {
                 {tariff.maxMinutes}
               </TableCell>
               <TableCell align="left" sx={{ color: "var(--text-color)" }}>
-                ${tariff.regularPrice.toLocaleString("es-CL")}
+                {tariff.regularPrice.toLocaleString("es-CL")}
               </TableCell>
               <TableCell align="left" sx={{ color: "var(--text-color)" }}>
-                ${tariff.weekendPrice.toLocaleString("es-CL")}
+                {tariff.weekendPrice.toLocaleString("es-CL")}
               </TableCell>
               <TableCell align="left" sx={{ color: "var(--text-color)" }}>
-                ${tariff.holidayPrice.toLocaleString("es-CL")}
+                {tariff.holidayPrice.toLocaleString("es-CL")}
               </TableCell>
               <TableCell align="center">
                 <Button
                   variant="contained"
-                  color="info"
+                  sx={{
+                    backgroundColor: "var(--primary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
+                  }}
                   size="small"
                   onClick={() => handleEdit(tariff.id)}
                   startIcon={<EditIcon />}
-                  sx={{ marginRight: "0.5rem" }}
                 >
                   Editar
                 </Button>
                 <Button
                   variant="contained"
-                  color="error"
+                  sx={{
+                    backgroundColor: "var(--secondary-color)",
+                    color: "var(--text-color)",
+                    "&:hover": { backgroundColor: "var(--hover-color)" },
+                  }}
                   size="small"
                   onClick={() => handleDelete(tariff.id)}
+                  style={{ marginLeft: "0.5rem" }}
                   startIcon={<DeleteIcon />}
                 >
                   Eliminar
@@ -137,42 +154,3 @@ const TariffList = () => {
 };
 
 export default TariffList;
-
-/*
-@Entity
-@Table(name = "tariffs")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class TariffEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false)
-    private Long id;
-
-    @Column(nullable = false, name = "laps")
-    private int laps;
-
-    @Column(nullable = false, name = "max_minutes")
-    private int maxMinutes;
-
-    @Column(nullable = false, name = "regular_price")
-    private double regularPrice;
-
-    @Column(nullable = false, name = "total_duration")
-    private int totalDuration;
-
-    @Column(nullable = false, name = "weekend_discount_percentage")
-    private double weekendDiscountPercentage;
-
-    @Column(nullable = false, name = "holiday_increase_percentage")
-    private double holidayIncreasePercentage;
-
-    @Column(nullable = false, name = "weekend_price")
-    private double weekendPrice;
-
-    @Column(nullable = false, name = "holiday_price")
-    private double holidayPrice;
-}
-*/

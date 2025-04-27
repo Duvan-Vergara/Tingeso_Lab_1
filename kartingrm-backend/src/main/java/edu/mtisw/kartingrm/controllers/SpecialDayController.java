@@ -35,7 +35,7 @@ public class SpecialDayController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteSpecialDayById(@PathVariable Long id) throws Exception {
-        var isDeleted = specialDayService.deleteSpecialDayByID(id);
+        specialDayService.deleteSpecialDayByID(id);
         return ResponseEntity.noContent().build();
     }
 

@@ -2,7 +2,7 @@ import httpClient from "../http-common";
 
 const API_URL = '/api/v1/tariffs/';
 
-const listTariffs = () => {
+const getAllTariffs = () => {
     return httpClient.get(API_URL);
 };
 
@@ -19,7 +19,7 @@ const deleteTariffById = (id) => {
 };
 
 export default {
-    listTariffs,
+    getAllTariffs,
     saveTariff,
     getTariffById,
     deleteTariffById,

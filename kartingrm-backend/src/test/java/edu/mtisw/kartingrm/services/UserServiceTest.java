@@ -9,8 +9,8 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.junit.jupiter.api.BeforeEach;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -33,7 +33,7 @@ public class UserServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
 
-        user = new UserEntity(1L, "12345678-9", "John", "Doe", "john@example.com", new Date(96, 5, 15));
+        user = new UserEntity(1L, "12345678-9", "John", "Doe", "john@example.com", LocalDate.of(96, 5, 15));
     }
 
     @Test
@@ -81,18 +81,6 @@ public class UserServiceTest {
 
         // When
         UserEntity result = userService.getUserById(1L);
-
-        // Then
-        assertThat(result).isEqualTo(user);
-    }
-
-    @Test
-    void whenUpdateUser_thenReturnUpdatedUser() {
-        // Given
-        when(userRepository.save(user)).thenReturn(user);
-
-        // When
-        UserEntity result = userService.updateUser(user);
 
         // Then
         assertThat(result).isEqualTo(user);

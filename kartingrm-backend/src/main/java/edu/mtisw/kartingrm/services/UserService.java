@@ -4,7 +4,7 @@ import edu.mtisw.kartingrm.entities.UserEntity;
 import edu.mtisw.kartingrm.repositories.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.util.ArrayList;
 
 @Service
@@ -13,8 +13,8 @@ public class UserService {
     @Autowired
     UserRepository userRepository;
 
-    public ArrayList<UserEntity> getUsers(){
-        return (ArrayList<UserEntity>) userRepository.findAll();
+    public List<UserEntity> getUsers(){
+        return new ArrayList<>(userRepository.findAll());
     }
 
     public UserEntity saveUser(UserEntity user){
@@ -27,10 +27,6 @@ public class UserService {
 
     public UserEntity getUserByRut(String rut){
         return userRepository.findByRut(rut);
-    }
-
-    public UserEntity updateUser(UserEntity user) {
-        return userRepository.save(user);
     }
 
     public boolean deleteUser(Long id) throws Exception {

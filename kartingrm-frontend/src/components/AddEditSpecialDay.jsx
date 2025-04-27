@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import specialDayService from "../services/specialday.service";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import SaveIcon from "@mui/icons-material/Save";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CustomTextField from "./CustomTextField";
+import FormControl from "@mui/material/FormControl";
 
 const AddEditSpecialDay = () => {
   const [date, setDate] = useState("");
@@ -60,44 +62,62 @@ const AddEditSpecialDay = () => {
       justifyContent="center"
       component="form"
       sx={{
-        backgroundColor: "rgba(30, 30, 47, 0.9)",
+        backgroundColor: "var(--optional-color)",
         padding: "2rem",
         borderRadius: "12px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
+        boxShadow: "0 4px 8px rgba(90, 26, 26, 0.5)",
         maxWidth: "600px",
         margin: "2rem auto",
+        border: "1px solid var(--secondary-color)",
       }}
+      onSubmit={saveSpecialDay}
     >
-      <h3 style={{ color: "var(--accent-color)" }}>
+      <h3 style={{ color: "var(--text-optional-color)" }}>
         {id ? "Editar Día Especial" : "Nuevo Día Especial"}
       </h3>
-      <form>
-        <TextField
+      <FormControl fullWidth>
+        <CustomTextField
           label="Fecha"
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          fullWidth
-          margin="normal"
           InputLabelProps={{ shrink: true }}
         />
-        <TextField
+      </FormControl>
+      <FormControl fullWidth>
+        <CustomTextField
           label="Descripción"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          fullWidth
-          margin="normal"
         />
+      </FormControl>
+      <FormControl>
         <Button
           variant="contained"
-          color="primary"
-          onClick={saveSpecialDay}
+          sx={{
+            backgroundColor: "var(--primary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
+          type="submit"
           startIcon={<SaveIcon />}
-          style={{ marginTop: "1rem" }}
+          style={{ marginBottom: "0.5rem" }}
         >
           Guardar
         </Button>
-      </form>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "var(--secondary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
+          onClick={() => navigate("/specialdays/list")}
+          startIcon={<ArrowBackIcon />}
+        >
+          Volver
+        </Button>
+      </FormControl>
     </Box>
   );
 };

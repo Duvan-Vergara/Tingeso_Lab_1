@@ -150,8 +150,7 @@ public class SQLScriptGenerator {
             String name = "User" + i;
             String lastName = "LastName" + i;
             String email = "user" + i + "@example.com";
-            LocalDate localDate = LocalDate.of(1990 + random.nextInt(30), 1 + random.nextInt(12), 1 + random.nextInt(28));
-            Date birthDate = java.util.Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            LocalDate birthDate = LocalDate.of(1990 + random.nextInt(30), 1 + random.nextInt(12), 1 + random.nextInt(28));
             users.add(new UserEntity(userId++, rut, name, lastName, email, birthDate));
         }
         return users;

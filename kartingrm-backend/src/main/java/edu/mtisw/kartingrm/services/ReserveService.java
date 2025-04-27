@@ -53,11 +53,11 @@ public class ReserveService {
     public List<ReserveEntity> getReserves() { return new ArrayList<>(reserveRepository.findAll()); }
 
     public ReserveEntity saveReserve(ReserveEntity reserve) {
-        // Obtener las tarifas disponibles
-        List<TariffEntity> availableTariffs = tariffRepository.findAll();
-
         // Calcular la tarifa si no está especificada
         if (reserve.getTariff() == null) {
+            // Obtener las tarifas disponibles
+            List<TariffEntity> availableTariffs = tariffRepository.findAll();
+
             TariffEntity calculatedTariff = calculateTariffForReserve(reserve.getBegin(), reserve.getFinish(), availableTariffs);
             reserve.setTariff(calculatedTariff);
             // Ajustar la hora de finalización según la tarifa calculada
@@ -69,10 +69,6 @@ public class ReserveService {
 
     public ReserveEntity getReserveById(Long id){
         return reserveRepository.findById(id).get();
-    }
-
-    public ReserveEntity updateReserve(ReserveEntity reserve) {
-        return reserveRepository.save(reserve);
     }
 
     public List<ReserveEntity> getReserveByDay(int day) { return reserveRepository.getReserveByDate_Day(day); }
@@ -119,7 +115,6 @@ public class ReserveService {
 
     public double getTariffForDate(ReserveEntity reserve) {
         LocalDate reserveDate = reserve.getDate();
-        System.out.println("Fecha de reserva: " + reserveDate);
         if (complementReserve.isSpecialDay(reserveDate)) {
             return reserve.getTariff().getHolidayPrice();
         } else if (complementReserve.isWeekend(reserveDate)) {
@@ -161,26 +156,20 @@ public class ReserveService {
     public double calculateFinalPrice(ReserveEntity reserve, int month) {
         double totalPrice = 0;
         int birthdayLimit = complementReserve.calculateBirthdayLimit(reserve.getGroup().size());
-        System.out.println("Birthday Limit: " + birthdayLimit);
-        System.out.println("Tariff: " + reserve.getTariff());
         double basePrice = getTariffForDate(reserve);
-        System.out.println("Base Price: " + basePrice);
 
         for (UserEntity user : reserve.getGroup()) {
             List<ReserveEntity> userReserves = reserveRepository.getReservesByDateMonthAndRut(user.getRut(), month);
 
             double bestDiscount = complementReserve.calculateBestDiscount(reserve, userReserves);
-            System.out.println("Best Discount: " + bestDiscount);
 
             // Descuento por cumpleaños
             if (complementReserve.isBirthday(user, reserve.getDate()) && birthdayLimit > 0) {
                 bestDiscount = Math.max(bestDiscount, 0.50);
                 birthdayLimit--;
-                System.out.println("descuento por cumpleaños aplicado a " + user.getName());
             }
             // Aplicar el descuento al precio base por usuario
             totalPrice += basePrice * (1 - bestDiscount);
-            System.out.println("Total Price for " + user.getName() + ": " + totalPrice);
         }
         return totalPrice;
     }

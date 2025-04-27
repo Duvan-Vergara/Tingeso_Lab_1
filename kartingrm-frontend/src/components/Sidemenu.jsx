@@ -29,7 +29,7 @@ export default function Sidemenu({ open, toggleDrawer }) {
       <List>
         <ListItemButton onClick={() => navigate("/home")}>
           <ListItemIcon>
-            <HomeIcon />
+            <HomeIcon sx={{color: "var(--text-optional-color)"}}/>
           </ListItemIcon>
           <ListItemText primary="Home" />
         </ListItemButton>
@@ -38,35 +38,35 @@ export default function Sidemenu({ open, toggleDrawer }) {
 
         <ListItemButton onClick={() => navigate("/user/list")}>
           <ListItemIcon>
-            <PeopleAltIcon sx={{color: "var(--accent-color)" }} />
+            <PeopleAltIcon sx={{ color: "var(--text-optional-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Usuarios" />
         </ListItemButton>
 
         <ListItemButton onClick={() => navigate("/reserve/list")}>
           <ListItemIcon>
-            <MoreTimeIcon sx={{ color: "var(--accent-color)"}} />
+            <MoreTimeIcon sx={{ color: "var(--text-optional-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Reservas" />
         </ListItemButton>
 
         <ListItemButton onClick={() => navigate("/specialdays/list")}>
           <ListItemIcon>
-            <DiscountIcon sx={{ color: "var(--accent-color)" }} />
+            <DiscountIcon sx={{ color: "var(--text-optional-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Días Especiales" />
         </ListItemButton>
 
         <ListItemButton onClick={() => navigate("/tariff/list")}>
           <ListItemIcon>
-            <PaidIcon sx={{ color: "var(--accent-color)" }} />
+            <PaidIcon sx={{ color: "var(--text-optional-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Tarifas" />
         </ListItemButton>
 
         <ListItemButton onClick={() => navigate("/reports/generate")}>
           <ListItemIcon>
-            <PaidIcon sx={{ color: "var(--accent-color)" }} />
+            <PaidIcon sx={{ color: "var(--text-optional-color)" }} />
           </ListItemIcon>
           <ListItemText primary="Generar Reporte" />
         </ListItemButton>

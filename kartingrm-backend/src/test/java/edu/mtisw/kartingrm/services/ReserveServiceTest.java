@@ -85,16 +85,16 @@ public class ReserveServiceTest {
         doCallRealMethod().when(complementReserve).calculateFrequentCustomerDiscount(anyList());
         doCallRealMethod().when(complementReserve).isBirthday(any(UserEntity.class), any(LocalDate.class));
 
-        user = new UserEntity(1L, "12.345.678-9", "Yugo", "Smith", "duvanvch12@gmail.com", Date.from(LocalDate.of(1995, 5, 15).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user2 = new UserEntity(2L, "98.765.432-1", "Anna", "Johnson", "duvanvch12@gmail.com", Date.from(LocalDate.of(1990, 8, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user3 = new UserEntity(3L, "11.223.344-5", "Carlos", "Gomez", "duvanvch12@gmail.com", Date.from(LocalDate.of(1988, 12, 10).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user4 = new UserEntity(4L, "22244333-5", "User4", "LastName4", "duvanvch12@gmail.com", Date.from(LocalDate.of(2004, 2, 1).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user5 = new UserEntity(5L, "58176622-0", "User5", "LastName5", "duvanvch12@gmail.com", Date.from(LocalDate.of(2002, 7, 6).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user6 = new UserEntity(6L, "98877299-5", "User6", "LastName6", "duvanvch12@gmail.com", Date.from(LocalDate.of(2008, 4, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user7 = new UserEntity(7L, "9190820-5", "User7", "LastName7", "duvanvch12@gmail.com", Date.from(LocalDate.of(2002, 9, 7).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user8 = new UserEntity(8L, "63106613-7", "User8", "LastName8", "duvanvch12@gmail.com", Date.from(LocalDate.of(1997, 11, 3).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user9 = new UserEntity(9L, "35709765-2", "User9", "LastName9", "duvanvch12@gmail.com", Date.from(LocalDate.of(2008, 11, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
-        user10 = new UserEntity(10L, "6021623-0", "User10", "LastName10", "duvanvch12@gmail.com", Date.from(LocalDate.of(2000, 12, 22).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user = new UserEntity(1L, "12.345.678-9", "Yugo", "Smith", "duvanvch12@gmail.com", LocalDate.of(1995, 5, 15));
+        user2 = new UserEntity(2L, "98.765.432-1", "Anna", "Johnson", "duvanvch12@gmail.com", LocalDate.of(1990, 8, 20));
+        user3 = new UserEntity(3L, "11.223.344-5", "Carlos", "Gomez", "duvanvch12@gmail.com", LocalDate.of(1988, 12, 10));
+        user4 = new UserEntity(4L, "22244333-5", "User4", "LastName4", "duvanvch12@gmail.com", LocalDate.of(2004, 2, 1));
+        user5 = new UserEntity(5L, "58176622-0", "User5", "LastName5", "duvanvch12@gmail.com", LocalDate.of(2002, 7, 6));
+        user6 = new UserEntity(6L, "98877299-5", "User6", "LastName6", "duvanvch12@gmail.com", LocalDate.of(2008, 4, 22));
+        user7 = new UserEntity(7L, "9190820-5", "User7", "LastName7", "duvanvch12@gmail.com", LocalDate.of(2002, 9, 7));
+        user8 = new UserEntity(8L, "63106613-7", "User8", "LastName8", "duvanvch12@gmail.com", LocalDate.of(1997, 11, 3));
+        user9 = new UserEntity(9L, "35709765-2", "User9", "LastName9", "duvanvch12@gmail.com", LocalDate.of(2008, 11, 22));
+        user10 = new UserEntity(10L, "6021623-0", "User10", "LastName10", "duvanvch12@gmail.com", LocalDate.of(2000, 12, 22));
 
 
         Set<UserEntity> group = new LinkedHashSet<>();
@@ -361,20 +361,6 @@ public class ReserveServiceTest {
     }
 
     @Test
-    void whenUpdateReserve_thenReturnUpdatedReserve() {
-        // Given
-        when(reserveRepository.save(reserve)).thenReturn(reserve);
-
-        // When
-        ReserveEntity result = reserveService.updateReserve(reserve);
-
-        // Then
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(reserve.getId());
-        verify(reserveRepository, times(1)).save(reserve);
-    }
-
-    @Test
     void whenDeleteReserveById_thenVerifyDeletion() throws Exception {
         // When
         boolean result = reserveService.deleteReserveById(1L);
@@ -528,7 +514,7 @@ public class ReserveServiceTest {
     void whenCalculateFinalPriceWithBirthdayUser_thenApplyBirthdayDiscount() {
         // Given
         LocalDate birthday = LocalDate.now();
-        user.setBirthDate(java.util.Date.from(LocalDate.of(2000, 12, 20).atStartOfDay(ZoneId.systemDefault()).toInstant()));
+        user.setBirthDate(LocalDate.of(2000, 12, 20));
         reserve1.setGroup(Set.of(user));
         when(complementReserve.isBirthday(user, reserve1.getDate())).thenReturn(true);
         when(complementReserve.calculateBirthdayLimit(1)).thenReturn(1);
@@ -587,7 +573,7 @@ public class ReserveServiceTest {
                 reserve.setDate(date);
                 reserve.setBegin(LocalTime.of(9 + j, 0)); // 9:00, 10:00, 11:00
                 reserve.setFinish(LocalTime.of(9 + j, 30)); // 9:30, 10:30, 11:30
-                UserEntity user = new UserEntity((long) (i * 3 + j + 1), "RUT-" + (i * 3 + j + 1), "User" + (i * 3 + j + 1), "LastName" + (i * 3 + j + 1), "user" + (i * 3 + j + 1) + "@example.com", new Date());
+                UserEntity user = new UserEntity((long) (i * 3 + j + 1), "RUT-" + (i * 3 + j + 1), "User" + (i * 3 + j + 1), "LastName" + (i * 3 + j + 1), "user" + (i * 3 + j + 1) + "@example.com", LocalDate.of(1990, 1, 1).plusDays(i * 3 + j));
                 reserve.setGroup(Set.of(user));
                 reserves.add(reserve);
             }
@@ -711,6 +697,19 @@ public class ReserveServiceTest {
 
         // Then
         System.out.println("Correos enviados correctamente(SendPaymentReceipts). Verifica las bandejas de entrada.");
+    }
+
+    @Test
+    void whenSendPaymentReceipts_2_thenEmailsSent() throws Exception {
+        // Given
+        reserve.setGroup(Set.of(user, user2, user3)); // Simular un grupo de usuarios
+        reserve.setTariff(tariff1);
+
+        // When
+        reserveService.sendPaymentReceipts_2(reserve);
+
+        // Then
+        System.out.println("Correos enviados correctamente (SendPaymentReceipts_2). Verifica las bandejas de entrada.");
     }
 
     @Test
@@ -968,6 +967,8 @@ public class ReserveServiceTest {
 
         assertThat(exception.getMessage()).isEqualTo("No existen tarifas registradas");
     }
+
+
 }
 
 

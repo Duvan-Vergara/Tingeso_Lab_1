@@ -2,7 +2,7 @@ import httpClient from "../http-common";
 
 const API_URL = '/api/v1/reserves/';
 
-const listReserves = () => {
+const getAllReserves = () => {
     return httpClient.get(API_URL);
 };
 
@@ -12,10 +12,6 @@ const getReserveById = (id) => {
 
 const saveReserve = (reserve) => {
     return httpClient.post(API_URL, reserve);
-};
-
-const updateReserve = (reserve) => {
-    return httpClient.put(API_URL, reserve);
 };
 
 const deleteReserveById = (id) => {
@@ -66,10 +62,9 @@ const calculateFinalPrice = (reserve) => {
 
 
 export default {
-    listReserves,
+    getAllReserves,
     getReserveById,
     saveReserve,
-    updateReserve,
     deleteReserveById,
     listReservesByRutAndMonth,
     listReservesByDay,

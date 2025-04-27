@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 import org.springframework.format.annotation.DateTimeFormat;
-import java.util.Date;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "users")
@@ -31,7 +31,7 @@ public class UserEntity {
     @Column(nullable = false, name = "email")
     private String email;
 
-    @DateTimeFormat(pattern = "dd-mm-yyyy")
+    @DateTimeFormat(pattern = "dd-MM-yyyy")
     @Column(nullable = false, name = "birthdate")
-    private Date birthDate;
+    private LocalDate birthDate;
 }

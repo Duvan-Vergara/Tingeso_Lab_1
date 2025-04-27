@@ -20,7 +20,7 @@ const UserList = () => {
 
   const init = () => {
     userService
-      .getAll()
+      .getAllUsers()
       .then((response) => {
         console.log("Mostrando listado de todos los usuarios.", response.data);
         setUsers(response.data);
@@ -65,65 +65,48 @@ const UserList = () => {
   };
 
   return (
-    <TableContainer component={Paper}>
-      <br />
-      <Link
-        to="/user/add"
-        style={{ textDecoration: "none", marginBottom: "1rem" }}
+    <TableContainer component={Paper} sx={{ backgroundColor: "rgba(30, 30, 47, 0.9)" }}>
+      <h3 style={{ color: "var(--text-optional-color)", textAlign: "center" }}>Lista de Usuarios</h3>
+      <Button
+        variant="contained"
+        sx={{
+          backgroundColor: "var(--primary-color)",
+          color: "var(--text-color)",
+          "&:hover": { backgroundColor: "var(--hover-color)" },
+        }}
+        startIcon={<PersonAddIcon />}
+        onClick={() => navigate("/user/add")}
+        style={{ margin: "1rem" }}
       >
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<PersonAddIcon />}
-        >
-          Añadir Usuario
-        </Button>
-      </Link>
-      <br /> <br />
-      <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
+        Añadir Usuario
+      </Button>
+      <Table>
         <TableHead>
           <TableRow>
-            <TableCell align="left" sx={{ fontWeight: "bold" }}>
-              Rut
-            </TableCell>
-            <TableCell align="left" sx={{ fontWeight: "bold" }}>
-              Nombre
-            </TableCell>
-            <TableCell align="left" sx={{ fontWeight: "bold" }}>
-              Apellido
-            </TableCell>
-            <TableCell align="left" sx={{ fontWeight: "bold" }}>
-              Email
-            </TableCell>
-            <TableCell align="left" sx={{ fontWeight: "bold" }}>
-              Fecha de Nacimiento
-            </TableCell>
-            <TableCell align="center" sx={{ fontWeight: "bold" }}>
-              Operaciones
-            </TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Rut</TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Nombre</TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Apellido</TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Email</TableCell>
+            <TableCell sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Fecha de Nacimiento</TableCell>
+            <TableCell align="center" sx={{ color: "var(--text-color)", fontWeight: "bold" }}>Operaciones</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {users.map((user) => (
-            <TableRow
-              key={user.id}
-              sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-            >
-              <TableCell align="left">{user.rut}</TableCell>
-          <TableCell align="left">{user.name}</TableCell>
-          <TableCell align="left">{user.lastName}</TableCell>
-          <TableCell align="left">{user.email}</TableCell>
-          <TableCell align="left">
-            {new Date(user.birthDate).toLocaleDateString("es-CL")}
-          </TableCell>
+            <TableRow key={user.id}>
+              <TableCell sx={{ color: "var(--text-color)" }}>{user.rut}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{user.name}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{user.lastName}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{user.email}</TableCell>
+              <TableCell sx={{ color: "var(--text-color)" }}>{user.birthDate}</TableCell>
               <TableCell align="center">
                 <Button
                   variant="contained"
-                  sx ={{ 
+                  sx={{
                     backgroundColor: "var(--primary-color)",
                     color: "var(--text-color)",
                     "&:hover": { backgroundColor: "var(--hover-color)" },
-                   }}
+                  }}
                   size="small"
                   onClick={() => handleEdit(user.id)}
                   startIcon={<EditIcon />}
@@ -132,11 +115,11 @@ const UserList = () => {
                 </Button>
                 <Button
                   variant="contained"
-                  sx ={{ 
+                  sx={{
                     backgroundColor: "var(--secondary-color)",
                     color: "var(--text-color)",
                     "&:hover": { backgroundColor: "var(--hover-color)" },
-                   }}
+                  }}
                   size="small"
                   onClick={() => handleDelete(user.id)}
                   style={{ marginLeft: "0.5rem" }}
@@ -154,34 +137,3 @@ const UserList = () => {
 };
 
 export default UserList;
-
-/*
-@Entity
-@Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(unique = true, nullable = false)
-    private Long id;
-
-    @Column(nullable = false, name = "rut")
-    private String rut;
-
-    @Column(nullable = false, name = "name")
-    private String name;
-
-    @Column(nullable = false, name = "lastname")
-    private String lastName;
-
-    @Column(nullable = false, name = "email")
-    private String email;
-
-    @DateTimeFormat(pattern = "dd-mm-yyyy")
-    @Column(nullable = false, name = "birthdate")
-    private Date birthDate;
-}
-*/

@@ -62,19 +62,6 @@ public class TariffServiceTest {
     }
 
     @Test
-    void whenUpdateTariff_thenReturnUpdatedTariff() {
-        // Given
-        when(tariffRepository.save(tariff)).thenReturn(tariff);
-
-        // When
-        TariffEntity result = tariffService.updateTariff(tariff);
-
-        // Then
-        assertThat(result).isEqualTo(tariff);
-        verify(tariffRepository, times(1)).save(tariff);
-    }
-
-    @Test
     void whenGetTariffById_thenReturnTariff() {
         // Given
         when(tariffRepository.findById(1L)).thenReturn(Optional.of(tariff));

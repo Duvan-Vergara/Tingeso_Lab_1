@@ -1,23 +1,21 @@
 import httpClient from "../http-common";
 
-const getAll = () => {
-    return httpClient.get('/api/v1/users/');
-}
+const API_URL = '/api/v1/users/';
 
-const create = data => {
-    return httpClient.post("/api/v1/users/", data);
-}
+const getAllUsers = () => {
+    return httpClient.get(API_URL);
+};
 
-const get = id => {
-    return httpClient.get(`/api/v1/users/${id}`);
-}
+const saveUser = (data) => {
+    return httpClient.post(API_URL, data);
+};
 
-const update = data => {
-    return httpClient.put('/api/v1/users/', data);
-}
+const getUserById = (id) => {
+    return httpClient.get(`${API_URL}${id}`);
+};
 
-const remove = id => {
-    return httpClient.delete(`/api/v1/users/${id}`);
-}
+const removeUser = (id) => {
+    return httpClient.delete(`${API_URL}${id}`);
+};
 
-export default { getAll, create, get, update, remove };
+export default { getAllUsers, saveUser, getUserById, removeUser };

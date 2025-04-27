@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import tariffService from "../services/tariff.service";
 import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 import SaveIcon from "@mui/icons-material/Save";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import CustomTextField from "./CustomTextField";
+import FormControl from "@mui/material/FormControl";
 
 const AddEditTariff = () => {
   const [laps, setLaps] = useState(0);
@@ -13,7 +15,7 @@ const AddEditTariff = () => {
   const [weekendPrice, setWeekendPrice] = useState(0);
   const [holidayPrice, setHolidayPrice] = useState(0);
   const [weekendDiscountPercentage, setWeekendDiscountPercentage] = useState(0.0);
-  const [holidayDiscountPercentage, setHolidayDiscountPercentage] = useState(0.0);
+  const [holidayIncreasePercentage, setholidayIncreasePercentage] = useState(0.0);
   const [totalDuration, setTotalDuration] = useState(0);
   const { id } = useParams();
   const navigate = useNavigate();
@@ -30,7 +32,7 @@ const AddEditTariff = () => {
           setWeekendPrice(tariff.weekendPrice);
           setHolidayPrice(tariff.holidayPrice);
           setWeekendDiscountPercentage(tariff.weekendDiscountPercentage);
-          setHolidayDiscountPercentage(tariff.holidayDiscountPercentage);
+          setholidayIncreasePercentage(tariff.holidayIncreasePercentage);
           setTotalDuration(tariff.totalDuration);
         })
         .catch((error) => {
@@ -41,7 +43,7 @@ const AddEditTariff = () => {
 
   const saveTariff = (e) => {
     e.preventDefault();
-    const tariff = { laps, maxMinutes, regularPrice, totalDuration, weekendDiscountPercentage, holidayDiscountPercentage, weekendPrice, holidayPrice };
+    const tariff = { laps, maxMinutes, regularPrice, totalDuration, weekendDiscountPercentage, holidayIncreasePercentage, weekendPrice, holidayPrice };
     if (id) {
       tariffService
         .saveTariff({ ...tariff, id })
@@ -71,68 +73,88 @@ const AddEditTariff = () => {
       justifyContent="center"
       component="form"
       sx={{
-        backgroundColor: "rgba(30, 30, 47, 0.9)",
+        backgroundColor: "var(--optional-color)",
         padding: "2rem",
         borderRadius: "12px",
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.5)",
+        boxShadow: "0 4px 8px rgba(90, 26, 26, 0.5)",
         maxWidth: "600px",
         margin: "2rem auto",
+        border: "1px solid var(--secondary-color)",
       }}
+      onSubmit={saveTariff}
     >
-      <h3 style={{ color: "var(--accent-color)" }}>{id ? "Editar Tarifa" : "Nueva Tarifa"}</h3>
-      <form>
-        <TextField
+      <h3 style={{ color: "var(--text-optional-color)" }}>{id ? "Editar Tarifa" : "Nueva Tarifa"}</h3>
+      <FormControl fullWidth>
+        <CustomTextField
           label="Vueltas"
           value={laps}
           onChange={(e) => setLaps(e.target.value)}
-          fullWidth
-          margin="normal"
         />
-        <TextField
+      </FormControl>
+      <FormControl fullWidth>
+        <CustomTextField
           label="Máx. Minutos"
           value={maxMinutes}
           onChange={(e) => setMaxMinutes(e.target.value)}
-          fullWidth
-          margin="normal"
         />
-        <TextField
+      </FormControl>
+
+      <FormControl fullWidth>
+        <CustomTextField
           label="Precio Regular"
           value={regularPrice}
           onChange={(e) => setRegularPrice(e.target.value)}
-          fullWidth
-          margin="normal"
         />
-        <TextField
+      </FormControl>
+      <FormControl fullWidth>
+        <CustomTextField
           label="Duración Total (minutos)"
           value={totalDuration}
           onChange={(e) => setTotalDuration(e.target.value)}
-          fullWidth
-          margin="normal"
         />
-        <TextField
+      </FormControl>
+
+      <FormControl fullWidth>
+        <CustomTextField
           label="% Descuento Fin de Semana"
           value={weekendDiscountPercentage}
           onChange={(e) => setWeekendDiscountPercentage(e.target.value)}
-          fullWidth
-          margin="normal"
         />
-        <TextField
+      </FormControl>
+      <FormControl fullWidth>
+        <CustomTextField
           label="% Aumento Días Especiales"
           value={holidayIncreasePercentage}
-          onChange={(e) => setHolidayIncreasePercentage(e.target.value)}
-          fullWidth
-          margin="normal"
+          onChange={(e) => setholidayIncreasePercentage(e.target.value)}
         />
+      </FormControl>
+      <FormControl>
         <Button
           variant="contained"
-          color="primary"
-          onClick={saveTariff}
+          sx={{
+            backgroundColor: "var(--primary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
+          type="submit"
           startIcon={<SaveIcon />}
-          style={{ marginTop: "1rem" }}
+          style={{ marginBottom: "0.5rem" }}
         >
           Guardar
         </Button>
-      </form>
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: "var(--secondary-color)",
+            color: "var(--text-color)",
+            "&:hover": { backgroundColor: "var(--accent-color)" },
+          }}
+          onClick={() => navigate("/tariff/list")}
+          startIcon={<ArrowBackIcon />}
+        >
+          Volver
+        </Button>
+      </FormControl>
     </Box>
   );
 };

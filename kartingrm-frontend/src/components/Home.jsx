@@ -1,7 +1,7 @@
 const Home = () => {
   return (
     <div>
-      <h1>KartingRM: Negocio líder en la industria del karting</h1>
+      <h1 style={{color: "var(--text-optional-color)"}}>KartingRM: Negocio líder en la industria del karting</h1>
       <p>
         SisGR es una aplicación web para gestionar reservas, horarios y administrar recursos de forma eficiente relaiconado al negocio del karting. 
         Esta aplicación ha sido desarrollada usando tecnologías como{" "}
