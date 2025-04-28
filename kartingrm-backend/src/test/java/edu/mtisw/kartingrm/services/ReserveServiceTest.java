@@ -670,7 +670,6 @@ public class ReserveServiceTest {
         assertThat(impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable")).isEqualTo("true");
     }
 
-    /*
     @Test
     void whenSendEmailWithAttachment_thenNoExceptions() throws IOException, DocumentException {
         // Crear datos de prueba
@@ -686,9 +685,7 @@ public class ReserveServiceTest {
         );
         System.out.println("Correo enviado correctamente (SendEmailWitch Attachment). Verifica la bandeja de entrada.");
     }
-    */
 
-    /*
     @Test
     void whenSendPaymentReceipts_thenEmailsSent() throws IOException, DocumentException {
         // Given
@@ -701,7 +698,6 @@ public class ReserveServiceTest {
         // Then
         System.out.println("Correos enviados correctamente(SendPaymentReceipts). Verifica las bandejas de entrada.");
     }
-     */
 
     @Test
     void whenSendPaymentReceipts_2_thenEmailsSent() throws Exception {
