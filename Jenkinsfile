@@ -1,29 +1,6 @@
 pipeline {
     agent any
-
-    environment {
-        VM_USER = 'DuvanVergara'
-        VM_HOST = '4.206.177.191'
-        VM_CREDENTIALS = 'VM_CREDENTIALS'
-        DOCKER_HUB_USERNAME = 'duvanvergara'
-        DOCKER_HUB_PASSWORD = 'dckpass'
-    }
     stages {
-        stage('Test SSH Connection') {
-            steps {
-                script {
-                    def remote = [:]
-                    remote.name = 'Azure VM'
-                    remote.host = VM_HOST
-                    remote.user = VM_USER
-                    remote.allowAnyHosts = true
-                    remote.credentialsId = VM_CREDENTIALS
-                    
-                    // Probar la conexión SSH ejecutando un comando simple
-                    sshCommand remote: remote, command: 'echo "Connection Successful!"'
-                }
-            }
-        }
         stage('Checkout Repository') {
             steps {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'PipeLine_1_Github', url: 'https://github.com/Duvan-Vergara/Tingeso_Lab_1']])
@@ -63,28 +40,6 @@ pipeline {
                         bat "docker login -u duvanvergara -p ${dckpass}"
                     }
                     bat "docker push duvanvergara/frontend:latest"
-                }
-            }
-        }
-
-        // Despliegue en la VM
-        stage('Deploy to VM') {
-            steps {
-                script {
-                    def remote = [:]
-                    remote.name = 'Azure VM'
-                    remote.host = VM_HOST
-                    remote.user = VM_USER
-                    remote.allowAnyHosts = true
-                    remote.credentialsId = 'VM_CREDENTIALS'
-                    
-                    // Subir archivo compose.yml
-                    sshPut remote: remote, from: 'Multiple_replicas/compose.yml', into: '/home/DuvanVergara/deploy'
-                    
-                    // Ejecutar comandos Docker Compose en la VM
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose down --rmi all"
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose pull"
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose up -d"
                 }
             }
         }
