@@ -281,8 +281,8 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationGreaterThanLongestTariff_thenReturnLongestTariff() {
         // Given
-        LocalTime startTime = LocalTime.now();
-        LocalTime endTime = startTime.plusMinutes(60); // 60 minutos
+        LocalTime startTime = LocalTime.of(10, 0); // 10:00 AM
+        LocalTime endTime = startTime.plusMinutes(60); // 11:00 AM
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
         // When
@@ -295,7 +295,7 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationBetweenTariffs_thenReturnCorrectTariff_2() {
         // Given
-        LocalTime startTime = LocalTime.now();
+        LocalTime startTime = LocalTime.of(10, 0); // 10:00 AM;
         LocalTime endTime = startTime.plusMinutes(2); // 2 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
@@ -309,7 +309,7 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithDurationBetweenTariffs_thenReturnCorrectTariff() {
         // Given
-        LocalTime startTime = LocalTime.now();
+        LocalTime startTime = LocalTime.of(10, 0); // 10:00 AM
         LocalTime endTime = startTime.plusMinutes(35); // 35 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
@@ -323,7 +323,7 @@ public class ReserveServiceTest {
     @Test
     void whenCalculateTariffForReserveWithNoSuitableTariff_thenThrowException() {
         // Given
-        LocalTime startTime = LocalTime.now();
+        LocalTime startTime = LocalTime.of(10, 0); // 10:00 AM
         LocalTime endTime = startTime.plusMinutes(1); // 1 minutos
         List<TariffEntity> tariffs = new ArrayList<>(); // Sin tarifas
 
@@ -349,7 +349,7 @@ public class ReserveServiceTest {
     @Test
     void whenDurationFallsBetweenTwoTariffs_thenReturnClosestHigherTariff() {
         // Given
-        LocalTime startTime = LocalTime.now();
+        LocalTime startTime = LocalTime.of(10, 0); // 10:00 AM
         LocalTime endTime = startTime.plusMinutes(41); // 41 minutos
         List<TariffEntity> tariffs = new ArrayList<>(List.of(tariff1, tariff2, tariff3));
 
