@@ -66,27 +66,5 @@ pipeline {
                 }
             }
         }
-
-        // Despliegue en la VM
-        stage('Deploy to VM') {
-            steps {
-                script {
-                    def remote = [:]
-                    remote.name = 'Azure VM'
-                    remote.host = VM_HOST
-                    remote.user = VM_USER
-                    remote.allowAnyHosts = true
-                    remote.credentialsId = 'VM_CREDENTIALS'
-                    
-                    // Subir archivo compose.yml
-                    sshPut remote: remote, from: 'Multiple_replicas/compose.yml', into: '/home/DuvanVergara/deploy'
-                    
-                    // Ejecutar comandos Docker Compose en la VM
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose down --rmi all"
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose pull"
-                    sshCommand remote: remote, command: "cd /home/DuvanVergara/deploy && docker-compose up -d"
-                }
-            }
-        }
     }
 }
