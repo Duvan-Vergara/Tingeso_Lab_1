@@ -631,12 +631,6 @@ public class ReserveServiceTest {
         // Then
         assertThat(pdfData).isNotNull();
         assertThat(pdfData.length).isGreaterThan(0);
-
-        // Guardar el PDF en un archivo temporal para inspección manual
-        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Comprobante_de_Pago", ".pdf");
-        java.nio.file.Files.write(tempFile, pdfData);
-
-        System.out.println("PDF generado y guardado en: " + tempFile.toAbsolutePath());
     }
 
     @Test
@@ -683,7 +677,6 @@ public class ReserveServiceTest {
                 pdfData,
                 "archivo_prueba.pdf"
         );
-        System.out.println("Correo enviado correctamente (SendEmailWitch Attachment). Verifica la bandeja de entrada.");
     }
 
     @Test
@@ -707,9 +700,6 @@ public class ReserveServiceTest {
 
         // When
         reserveService.sendPaymentReceipts_2(reserve);
-
-        // Then
-        System.out.println("Correos enviados correctamente (SendPaymentReceipts_2). Verifica las bandejas de entrada.");
     }
 
     @Test
@@ -757,14 +747,6 @@ public class ReserveServiceTest {
         // Then
         assertThat(report).isNotNull();
         assertThat(report.length).isGreaterThan(0);
-
-        // Guardar el reporte para inspección visual
-        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Reporte_Ingresos_Tarifa", ".xlsx");
-        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
-            fos.write(report);
-        }
-
-        System.out.println("Reporte de ingresos por tarifa guardado en: " + tempFile.toAbsolutePath());
 
         // Validar contenido del Excel
         try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(report))) {
@@ -837,14 +819,6 @@ public class ReserveServiceTest {
 
         // Then
         assertThat(report).isNotNull();
-
-        // Guardar el reporte para inspección visual
-        java.nio.file.Path tempFile = java.nio.file.Files.createTempFile("Reporte_Ingresos_Grupo", ".xlsx");
-        try (FileOutputStream fos = new FileOutputStream(tempFile.toFile())) {
-            fos.write(report);
-        }
-
-        System.out.println("Reporte de ingresos por tamaño guardado en: " + tempFile.toAbsolutePath());
 
         // Validar contenido del Excel
         try (Workbook workbook = WorkbookFactory.create(new ByteArrayInputStream(report))) {

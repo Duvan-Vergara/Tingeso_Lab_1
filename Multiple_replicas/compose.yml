@@ -1,6 +1,24 @@
 version: "3.8"
 
 services:
+  # Servicio de Base de Datos MySQL
+  db:
+    image: mysql:8.0
+    restart: always
+    container_name: mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: 1880
+      MYSQL_DATABASE: dbkartingrm
+      MYSQL_USER: root
+      MYSQL_PASSWORD: 1880
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - backend-network
+
   # Frontend services
   frontend1:
     image: duvanvergara/kartingrm-frontend:latest
@@ -21,21 +39,27 @@ services:
   backend1:
     image: duvanvergara/kartingrm-backend:latest
     environment:
-      - DB_HOST=192.168.18.209
+      - DB_HOST=db
+    depends_on:
+      - db
     networks:
       - backend-network
 
   backend2:
     image: duvanvergara/kartingrm-backend:latest
     environment:
-      - DB_HOST=192.168.18.209
+      - DB_HOST=db
+    depends_on:
+      - db
     networks:
       - backend-network
 
   backend3:
     image: duvanvergara/kartingrm-backend:latest
     environment:
-      - DB_HOST=192.168.18.209
+      - DB_HOST=db
+    depends_on:
+      - db
     networks:
       - backend-network
 
@@ -70,3 +94,6 @@ services:
 networks:
   frontend-network:
   backend-network:
+
+volumes:
+  mysql_data:
