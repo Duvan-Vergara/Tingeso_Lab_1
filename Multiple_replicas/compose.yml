@@ -75,7 +75,7 @@ services:
   nginx-frontend:
     image: nginx:latest
     ports:
-      - "8070:80"
+      - "8070:8070"
     volumes:
       - ./nginx-frontend.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -89,7 +89,7 @@ services:
   nginx-backend:
     image: nginx:latest
     ports:
-      - "8090:8090"
+      - "80:80"
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
     depends_on:
