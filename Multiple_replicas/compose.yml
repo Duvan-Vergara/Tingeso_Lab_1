@@ -23,16 +23,25 @@ services:
     image: duvanvergara/kartingrm-frontend:latest
     networks:
       - frontend-network
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   frontend2:
     image: duvanvergara/kartingrm-frontend:latest
     networks:
       - frontend-network
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   frontend3:
     image: duvanvergara/kartingrm-frontend:latest
     networks:
       - frontend-network
+    deploy:
+      restart_policy:
+        condition: on-failure
 
   # Backend services
   backend1:
@@ -80,7 +89,7 @@ services:
   nginx-backend:
     image: nginx:latest
     ports:
-      - "8080:80"
+      - "8090:8090"
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
     depends_on:
