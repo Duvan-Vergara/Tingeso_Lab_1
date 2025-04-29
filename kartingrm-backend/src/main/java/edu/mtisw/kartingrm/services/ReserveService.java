@@ -19,6 +19,7 @@ import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.poi.ss.usermodel.*;
@@ -313,6 +314,7 @@ public class ReserveService {
         try {
             message.setSubject(subject);
             MimeMessageHelper helper = new MimeMessageHelper(message, true);
+            helper.setFrom(senderEmail);
             helper.setTo(to);
             helper.setText(text);
             helper.addAttachment(attachmentName, new ByteArrayDataSource(attachmentData, "application/pdf"));
@@ -347,6 +349,7 @@ public class ReserveService {
         for (UserEntity user : reserve.getGroup()) {
             executorService.submit(() -> {
                 try {
+                    System.out.println("Enviando correo a: " + user.getEmail());
                     sendEmailWithAttachment(
                             user.getEmail(),
                             "Comprobante de Pago",
@@ -359,9 +362,15 @@ public class ReserveService {
                 }
             });
         }
-
         // Cerrar el pool de hilos
         executorService.shutdown();
+        try {
+            if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+                System.err.println("Algunas tareas no se completaron a tiempo.");
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public JavaMailSender createJavaMailSender() {

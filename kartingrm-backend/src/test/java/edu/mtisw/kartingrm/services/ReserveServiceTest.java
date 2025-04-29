@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileOutputStream;
@@ -33,6 +34,7 @@ import static org.mockito.Mockito.when;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+
 
 public class ReserveServiceTest {
 
@@ -64,6 +66,7 @@ public class ReserveServiceTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+        ReflectionTestUtils.setField(reserveService, "senderEmail", "duvanvch12@gmail.com");
 
         // Configurar un JavaMailSender real
         JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
