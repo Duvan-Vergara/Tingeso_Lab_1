@@ -9,8 +9,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1880
       MYSQL_DATABASE: dbkartingrm
-      MYSQL_USER: root
-      MYSQL_PASSWORD: 1880
+      MYSQL_ROOT_HOST: '%'
     ports:
       - "3306:3306"
     volumes:
