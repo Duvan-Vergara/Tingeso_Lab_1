@@ -11,7 +11,7 @@ services:
       MYSQL_DATABASE: dbkartingrm
       MYSQL_ROOT_HOST: '%'
     ports:
-      - "3306:3306"
+      - 3306:3306
     volumes:
       - mysql_data:/var/lib/mysql
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -75,7 +75,7 @@ services:
   nginx-frontend:
     image: nginx:latest
     ports:
-      - "8070:8070"
+      - 8070:8070
     volumes:
       - ./nginx-frontend.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -89,7 +89,7 @@ services:
   nginx-backend:
     image: nginx:latest
     ports:
-      - "80:80"
+      - 80:80
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
     depends_on:

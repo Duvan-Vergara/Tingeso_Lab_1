@@ -349,7 +349,6 @@ public class ReserveService {
         for (UserEntity user : reserve.getGroup()) {
             executorService.submit(() -> {
                 try {
-                    System.out.println("Enviando correo a: " + user.getEmail());
                     sendEmailWithAttachment(
                             user.getEmail(),
                             "Comprobante de Pago",
