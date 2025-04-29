@@ -687,9 +687,6 @@ public class ReserveServiceTest {
 
         // When
         reserveService.sendPaymentReceipts(reserve);
-
-        // Then
-        System.out.println("Correos enviados correctamente(SendPaymentReceipts). Verifica las bandejas de entrada.");
     }
 
     @Test

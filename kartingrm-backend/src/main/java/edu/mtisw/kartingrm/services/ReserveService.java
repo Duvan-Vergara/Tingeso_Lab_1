@@ -131,7 +131,6 @@ public class ReserveService {
 
         // Calcular la duración en minutos
         long durationInMinutes = java.time.Duration.between(startTime, endTime).toMinutes();
-        System.out.println("Duración en minutos: " + durationInMinutes);
 
 
         // Inicializar las tarifas mínima y máxima
