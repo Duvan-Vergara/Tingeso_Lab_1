@@ -9,6 +9,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 1880
       MYSQL_DATABASE: dbkartingrm
+      MYSQL_USER: root
       MYSQL_ROOT_HOST: '%'
     ports:
       - 3306:3306
@@ -46,28 +47,52 @@ services:
   # Backend services
   backend1:
     image: duvanvergara/kartingrm-backend:latest
+    ports:
+      - 8091:8090
     environment:
       - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=1880
     depends_on:
       - db
+    deploy:
+      restart_policy:
+        condition: on-failure
     networks:
       - backend-network
 
   backend2:
     image: duvanvergara/kartingrm-backend:latest
+    ports:
+      - 8092:8090
     environment:
       - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=1880
     depends_on:
       - db
+    deploy:
+      restart_policy:
+        condition: on-failure
     networks:
       - backend-network
 
   backend3:
     image: duvanvergara/kartingrm-backend:latest
+    ports:
+      - 8093:8090
     environment:
       - DB_HOST=db
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=1880
     depends_on:
       - db
+    deploy:
+      restart_policy:
+        condition: on-failure
     networks:
       - backend-network
 
