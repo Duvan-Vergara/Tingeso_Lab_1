@@ -8,9 +8,7 @@ services:
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: 1880
-      MYSQL_DATABASE: dbkartingrm
-      MYSQL_USER: root
-      MYSQL_ROOT_HOST: '%'
+      MYSQL_USERNAME: root
     ports:
       - 3306:3306
     volumes:
@@ -56,10 +54,10 @@ services:
     ports:
       - 8091:8090
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=1880
+      - DB_HOST: db
+      - DB_PORT: 3306
+      - DB_USERNAME: root
+      - DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
@@ -73,10 +71,10 @@ services:
     ports:
       - 8092:8090
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=1880
+      - DB_HOST: db
+      - DB_PORT: 3306
+      - DB_USERNAME: root
+      - DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
@@ -90,10 +88,10 @@ services:
     ports:
       - 8093:8090
     environment:
-      - DB_HOST=db
-      - DB_PORT=3306
-      - DB_USERNAME=root
-      - DB_PASSWORD=1880
+      - DB_HOST: db
+      - DB_PORT: 3306
+      - DB_USERNAME: root
+      - DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
@@ -107,7 +105,7 @@ services:
     image: nginx:latest
     restart: always
     ports:
-      - 8070:8070
+      - "8070:80"
     volumes:
       - ./nginx-frontend.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -122,7 +120,7 @@ services:
     image: nginx:latest
     restart: always
     ports:
-      - 8090:8090
+      - "8090:8090"
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
     depends_on:
