@@ -58,7 +58,7 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_USER=root
+      - DB_USERNAME=root
       - DB_PASSWORD=1880
     depends_on:
       - db
@@ -75,7 +75,7 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_USER=root
+      - DB_USERNAME=root
       - DB_PASSWORD=1880
     depends_on:
       - db
@@ -92,7 +92,7 @@ services:
     environment:
       - DB_HOST=db
       - DB_PORT=3306
-      - DB_USER=root
+      - DB_USERNAME=root
       - DB_PASSWORD=1880
     depends_on:
       - db
