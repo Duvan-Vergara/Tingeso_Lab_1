@@ -19,7 +19,7 @@ function App() {
       <div className="container">
         <Navbar></Navbar>
         <Routes>
-          <Route path="/" element={<Navigate to="/home" />} />
+          <Route path="/" element={<Home />} />
           <Route path="/home" element={<Home />} />
           <Route path="/user/list" element={<UserList />} />
           <Route path="/user/add" element={<AddEditUser />} />
@@ -34,7 +34,6 @@ function App() {
           <Route path="/tariff/add" element={<AddEditTariff />} />
           <Route path="/tariff/edit/:id" element={<AddEditTariff />} />
           <Route path="/reports/generate" element={<ReportGenerator />} />
-          <Route path="*" element={<NotFound />} />
         </Routes>
       </div>
     </Router>

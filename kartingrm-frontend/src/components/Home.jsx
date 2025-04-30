@@ -11,7 +11,6 @@ const Home = () => {
         base de datos).
       </p>
     </div>
-    
   );
 };
 

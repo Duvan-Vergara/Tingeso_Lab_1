@@ -22,6 +22,8 @@ services:
   # Frontend services
   frontend1:
     image: duvanvergara/kartingrm-frontend:latest
+    ports:
+      - 3001:80
     networks:
       - frontend-network
     deploy:
@@ -30,6 +32,8 @@ services:
 
   frontend2:
     image: duvanvergara/kartingrm-frontend:latest
+    ports:
+      - 3002:80
     networks:
       - frontend-network
     deploy:
@@ -38,6 +42,8 @@ services:
 
   frontend3:
     image: duvanvergara/kartingrm-frontend:latest
+    ports:
+      - 3003:80
     networks:
       - frontend-network
     deploy:
@@ -99,6 +105,7 @@ services:
   # Nginx for frontend load balancing
   nginx-frontend:
     image: nginx:latest
+    restart: always
     ports:
       - 8070:8070
     volumes:
@@ -113,8 +120,9 @@ services:
   # Nginx for backend load balancing
   nginx-backend:
     image: nginx:latest
+    restart: always
     ports:
-      - 80:80
+      - 8090:8090
     volumes:
       - ./nginx-backend.conf:/etc/nginx/nginx.conf
     depends_on:
