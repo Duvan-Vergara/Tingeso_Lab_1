@@ -101,7 +101,7 @@ const ReserveList = () => {
         onClick={() => handleAdd}
         style={{ margin: "1rem" }}
       >
-        Añadir Reserva
+        Crear Reserva
       </Button>
       <Table sx={{ minWidth: 650 }} size="small" aria-label="a dense table">
         <TableHead>
