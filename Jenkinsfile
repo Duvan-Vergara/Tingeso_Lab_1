@@ -3,7 +3,7 @@ pipeline {
     stages {
         stage('Checkout Repository') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'PipeLine_1_Github', url: 'https://github.com/Duvan-Vergara/Tingeso_Lab_1']])
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/Duvan-Vergara/Tingeso_Lab_1']])
             }
         }
 
@@ -39,7 +39,7 @@ pipeline {
                     withCredentials([string(credentialsId: 'dckrhubpassword', variable: 'dckpass')]) {
                         bat "docker login -u duvanvergara -p ${dckpass}"
                     }
-                    bat "docker push duvanvergara/frontend:latest"
+                    bat "docker push duvanvergara/kartingrm-frontend:latest"
                 }
             }
         }

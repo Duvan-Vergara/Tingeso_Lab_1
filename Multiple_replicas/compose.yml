@@ -8,7 +8,7 @@ services:
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: 1880
-      MYSQL_DATABASE: kartingrm
+      MYSQL_DATABASE: dbkartingrm
     ports:
       - 3306:3306
     volumes:
@@ -21,8 +21,6 @@ services:
   frontend1:
     container_name: kartingrm-frontend-1
     image: duvanvergara/kartingrm-frontend:latest
-    ports:
-      - 3001:80
     networks:
       - frontend-network
     deploy:
@@ -32,8 +30,6 @@ services:
   frontend2:
     container_name: kartingrm-frontend-2
     image: duvanvergara/kartingrm-frontend:latest
-    ports:
-      - 3002:80
     networks:
       - frontend-network
     deploy:
@@ -43,8 +39,6 @@ services:
   frontend3:
     container_name: kartingrm-frontend-3
     image: duvanvergara/kartingrm-frontend:latest
-    ports:
-      - 3003:80
     networks:
       - frontend-network
     deploy:
@@ -55,8 +49,6 @@ services:
   backend1:
     container_name: kartingrm-backend-1
     image: duvanvergara/kartingrm-backend:latest
-    ports:
-      - 8091:8090
     environment:
        DB_HOST: db
        DB_PORT: 3306
@@ -73,8 +65,6 @@ services:
   backend2:
     container_name: kartingrm-backend-2
     image: duvanvergara/kartingrm-backend:latest
-    ports:
-      - 8092:8090
     environment:
        DB_HOST: db
        DB_PORT: 3306
@@ -91,8 +81,6 @@ services:
   backend3:
     container_name: kartingrm-backend-3
     image: duvanvergara/kartingrm-backend:latest
-    ports:
-      - 8093:8090
     environment:
        DB_HOST: db
        DB_PORT: 3306
