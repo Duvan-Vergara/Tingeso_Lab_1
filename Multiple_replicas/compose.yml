@@ -8,7 +8,7 @@ services:
     container_name: mysql-db
     environment:
       MYSQL_ROOT_PASSWORD: 1880
-      MYSQL_USERNAME: root
+      MYSQL_USER: root
     ports:
       - 3306:3306
     volumes:
@@ -54,10 +54,10 @@ services:
     ports:
       - 8091:8090
     environment:
-      - DB_HOST: db
-      - DB_PORT: 3306
-      - DB_USERNAME: root
-      - DB_PASSWORD: 1880
+       DB_HOST: db
+       DB_PORT: 3306
+       DB_USERNAME: root
+       DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
@@ -71,10 +71,10 @@ services:
     ports:
       - 8092:8090
     environment:
-      - DB_HOST: db
-      - DB_PORT: 3306
-      - DB_USERNAME: root
-      - DB_PASSWORD: 1880
+       DB_HOST: db
+       DB_PORT: 3306
+       DB_USERNAME: root
+       DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
@@ -88,10 +88,10 @@ services:
     ports:
       - 8093:8090
     environment:
-      - DB_HOST: db
-      - DB_PORT: 3306
-      - DB_USERNAME: root
-      - DB_PASSWORD: 1880
+       DB_HOST: db
+       DB_PORT: 3306
+       DB_USERNAME: root
+       DB_PASSWORD: 1880
     depends_on:
       - db
     deploy:
