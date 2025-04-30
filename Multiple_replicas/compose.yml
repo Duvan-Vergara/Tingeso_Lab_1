@@ -19,6 +19,7 @@ services:
 
   # Frontend services
   frontend1:
+    container_name: kartingrm-frontend-1
     image: duvanvergara/kartingrm-frontend:latest
     ports:
       - 3001:80
@@ -29,6 +30,7 @@ services:
         condition: on-failure
 
   frontend2:
+    container_name: kartingrm-frontend-2
     image: duvanvergara/kartingrm-frontend:latest
     ports:
       - 3002:80
@@ -39,6 +41,7 @@ services:
         condition: on-failure
 
   frontend3:
+    container_name: kartingrm-frontend-3
     image: duvanvergara/kartingrm-frontend:latest
     ports:
       - 3003:80
@@ -50,6 +53,7 @@ services:
 
   # Backend services
   backend1:
+    container_name: kartingrm-backend-1
     image: duvanvergara/kartingrm-backend:latest
     ports:
       - 8091:8090
@@ -67,6 +71,7 @@ services:
       - backend-network
 
   backend2:
+    container_name: kartingrm-backend-2
     image: duvanvergara/kartingrm-backend:latest
     ports:
       - 8092:8090
@@ -84,6 +89,7 @@ services:
       - backend-network
 
   backend3:
+    container_name: kartingrm-backend-3
     image: duvanvergara/kartingrm-backend:latest
     ports:
       - 8093:8090
@@ -103,6 +109,7 @@ services:
   # Nginx for frontend load balancing
   nginx-frontend:
     image: nginx:latest
+    container_name: kartingrm-nginx-frontend
     restart: always
     ports:
       - "8070:80"
@@ -117,6 +124,7 @@ services:
 
   # Nginx for backend load balancing
   nginx-backend:
+    container_name: kartingrm-nginx-backend
     image: nginx:latest
     restart: always
     ports:
